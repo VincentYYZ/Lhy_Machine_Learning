@@ -61,9 +61,14 @@ class TIMITDataset(Dataset):
 ```
 - `class TIMITDataset(Dataset):`：自定义数据集，继承 PyTorch `Dataset`。
 - `self.data = torch.from_numpy(X).float()`：将 NumPy 特征转为 float32 张量。
+     NumPy 的 数组（np.ndarray）和 PyTorch 的 张量（torch.Tensor）本质上都是“多维数字容器”。
+     它们都支持形状、索引、切片、广播等操作，本质上都是“装数字的数据结构”。
+     
 - `if y is not None:`：有标签时处理标签。
 - `y = y.astype(np.int)`：将标签转为整数类型（旧写法，等价于 int64）。
 - `self.label = torch.LongTensor(y)`：转为 PyTorch 长整型张量以用于交叉熵。
+  
+       
 - `else: self.label = None`：测试集无标签。
 - `__getitem__`：有标签返回 `(特征, 标签)`，无标签仅返回特征。
 - `__len__`：返回样本总数，供 DataLoader 取长度。
