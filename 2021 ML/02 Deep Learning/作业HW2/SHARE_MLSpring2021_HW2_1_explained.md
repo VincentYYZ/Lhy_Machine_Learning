@@ -67,7 +67,7 @@ class TIMITDataset(Dataset):
 - `if y is not None:`：有标签时处理标签。
 - `y = y.astype(np.int)`：将标签转为整数类型（旧写法，等价于 int64）。
 - `self.label = torch.LongTensor(y)`：转为 PyTorch 长整型张量以用于交叉熵。
-  
+     
        
 - `else: self.label = None`：测试集无标签。
 - `__getitem__`：有标签返回 `(特征, 标签)`，无标签仅返回特征。
