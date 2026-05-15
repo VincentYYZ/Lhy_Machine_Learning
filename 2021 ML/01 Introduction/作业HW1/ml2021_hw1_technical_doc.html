@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ML2021 HW1 图解技术文档</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&family=Noto+Serif+SC:wght@700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#18120a;--paper:#f7f2ea;--paper2:#ede8df;
+  --accent:#c0392b;--accent2:#fde8e5;
+  --blue:#1a3a6b;--blue2:#e8eef8;
+  --teal:#0a5c45;--teal2:#e0f4ed;
+  --gold:#8a6200;--gold2:#fef5dd;
+  --border:#ccc5b5;--muted:#7a7060;
+  --code:#1a1610;--code2:#e8dfc8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:'Noto Sans SC',sans-serif;font-weight:300;line-height:1.9}
+
+/* ── Banner ── */
+.banner{background:var(--ink);color:var(--paper);padding:3.5rem 4rem 2.8rem;position:relative;overflow:hidden}
+.banner::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent,transparent 32px,rgba(255,255,255,.018) 32px,rgba(255,255,255,.018) 33px);pointer-events:none}
+.btag{font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:#c8b06a;margin-bottom:.8rem}
+.banner h1{font-family:'Noto Serif SC',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;line-height:1.2;letter-spacing:.02em}
+.hac{color:#e8c96a}
+.bsub{font-size:.88rem;color:rgba(240,235,225,.52);border-left:2px solid #c8a840;padding-left:1rem;margin-top:1.1rem;max-width:580px}
+.bpills{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:1.5rem}
+.bpill{font-family:'JetBrains Mono',monospace;font-size:.65rem;padding:.22rem .65rem;border:1px solid rgba(200,176,106,.28);border-radius:2px;color:#c8b06a}
+
+/* ── Layout ── */
+.wrap{display:grid;grid-template-columns:230px 1fr;max-width:1340px;margin:0 auto}
+
+/* ── Sidebar ── */
+nav.side{background:var(--paper2);border-right:1px solid var(--border);padding:1.8rem 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.ntitle{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:0 1.2rem;margin:.9rem 0 .5rem}
+.ntitle:first-child{margin-top:0}
+.nl{display:block;padding:.38rem 1.2rem;font-size:.79rem;color:var(--ink);text-decoration:none;border-left:3px solid transparent;transition:all .14s}
+.nl:hover,.nl.on{background:rgba(192,57,43,.06);border-left-color:var(--accent);color:var(--accent)}
+.ns{display:block;padding:.26rem 1.2rem .26rem 2rem;font-size:.73rem;color:var(--muted);text-decoration:none;border-left:3px solid transparent;transition:all .14s}
+.ns:hover{color:var(--accent);border-left-color:rgba(192,57,43,.3)}
+.ndiv{height:1px;background:var(--border);margin:.7rem 1.1rem}
+
+/* ── Main ── */
+main{padding:2.8rem 3.8rem 5rem;max-width:840px}
+
+/* ── Sections ── */
+.sec{margin-bottom:3.8rem}
+.shead{display:flex;align-items:baseline;gap:.8rem;margin-bottom:1.7rem;padding-bottom:.65rem;border-bottom:1px solid var(--border)}
+.snum{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--accent);padding:.15rem .4rem;border:1px solid var(--accent2);border-radius:2px}
+h2{font-family:'Noto Serif SC',serif;font-size:1.3rem;font-weight:700;letter-spacing:.025em}
+h3{font-family:'Noto Serif SC',serif;font-size:.98rem;font-weight:700;color:var(--blue);margin:1.8rem 0 .6rem}
+h3::before{content:'▸ ';color:var(--accent);font-size:.78em}
+p{font-size:.9rem;margin-bottom:.85rem;line-height:1.92;color:#221a10}
+
+/* ── Callouts ── */
+.call{border-left:3px solid var(--gold);background:var(--gold2);padding:.85rem 1.15rem;border-radius:0 4px 4px 0;margin:1.1rem 0;font-size:.86rem}
+.call.b{border-left-color:var(--blue);background:var(--blue2)}
+.call.t{border-left-color:var(--teal);background:var(--teal2)}
+.call.r{border-left-color:var(--accent);background:var(--accent2)}
+.ctitle{font-size:.7rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;color:var(--gold)}
+.call.b .ctitle{color:var(--blue)}.call.t .ctitle{color:var(--teal)}.call.r .ctitle{color:var(--accent)}
+code.i{font-family:'JetBrains Mono',monospace;background:var(--paper2);border:1px solid var(--border);padding:.06em .32em;border-radius:2px;font-size:.8em;color:var(--accent)}
+
+/* ── Code block ── */
+.cb{background:var(--code);border-radius:5px;margin:1.2rem 0;overflow:hidden;border:1px solid rgba(255,255,255,.055)}
+.cbh{background:rgba(255,255,255,.04);padding:.4rem .9rem;display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.055)}
+.cbl{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(232,223,200,.35)}
+.cdd{display:flex;gap:5px}.cdd i{width:8px;height:8px;border-radius:50%}
+.cdd i:nth-child(1){background:#ff5f56}.cdd i:nth-child(2){background:#ffbd2e}.cdd i:nth-child(3){background:#27c93f}
+pre{padding:1.1rem 1.15rem;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.8;color:var(--code2)}
+.kw{color:#e08060}.fn{color:#80b8e0}.st{color:#a8d080}.cm{color:#6a906a;font-style:italic}.nm{color:#f0c060}.cl{color:#e0c870}
+
+/* ── Concept box (inline concept explainer) ── */
+.concept{border:1px solid var(--border);border-radius:7px;padding:1.2rem 1.4rem;margin:1.4rem 0;background:#fff;position:relative}
+.concept-tag{position:absolute;top:-10px;left:16px;background:var(--ink);color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.15rem .5rem;border-radius:2px;letter-spacing:.08em}
+.concept h4{font-size:.92rem;font-weight:500;margin-bottom:.5rem;color:var(--blue)}
+.concept p{margin-bottom:.4rem;font-size:.86rem}
+
+/* ── Visual diagram container ── */
+.viz{margin:1.4rem 0;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:#fff}
+.viz-title{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);padding:.55rem 1rem;border-bottom:1px solid var(--border);background:var(--paper2)}
+.viz svg{display:block;width:100%}
+.viz canvas{display:block;width:100%}
+
+/* ── Interactive stepper ── */
+.stepper{border:1px solid var(--border);border-radius:7px;overflow:hidden;margin:1.4rem 0}
+.step-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--paper2)}
+.step-tab{flex:1;padding:.55rem .4rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;text-align:center;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.04em}
+.step-tab.on{color:var(--accent);border-bottom-color:var(--accent);background:#fff}
+.step-panel{padding:1.2rem 1.4rem;background:#fff;display:none}
+.step-panel.on{display:block}
+.step-panel svg{display:block;width:100%}
+
+/* ── Tables ── */
+.tbl{width:100%;border-collapse:collapse;font-size:.83rem;margin:1rem 0}
+.tbl th{background:var(--ink);color:var(--paper);padding:.52rem .9rem;text-align:left;font-weight:400;font-size:.74rem;letter-spacing:.04em}
+.tbl td{padding:.52rem .9rem;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:nth-child(even) td{background:rgba(0,0,0,.02)}
+.tbl tr:last-child td{border-bottom:none}
+
+/* ── Improve list ── */
+.implist{list-style:none;margin:.8rem 0}
+.implist li{display:flex;gap:.8rem;padding:.7rem 0;border-bottom:1px solid var(--border);font-size:.86rem;align-items:flex-start}
+.implist li:last-child{border-bottom:none}
+.itag{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.18rem .42rem;border-radius:2px;color:#fff;flex-shrink:0;margin-top:.2rem;letter-spacing:.04em}
+.itag.f{background:var(--blue)}.itag.m{background:var(--accent)}.itag.t{background:var(--gold)}.itag.r{background:var(--teal)}
+
+/* ── Inline math formula ── */
+.formula{font-family:'JetBrains Mono',monospace;font-size:.82rem;background:var(--paper2);border:1px solid var(--border);border-radius:4px;padding:.3rem .8rem;display:inline-block;margin:.3rem 0;color:var(--blue)}
+
+/* ── Footer ── */
+footer{border-top:1px solid var(--border);padding:1.4rem 4rem;background:var(--paper2);font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem;grid-column:1/-1}
+
+@media(max-width:860px){.wrap{grid-template-columns:1fr}nav.side{display:none}main{padding:1.8rem 1.4rem}footer{padding:1.2rem 1.4rem}.step-tab{font-size:.6rem;padding:.5rem .2rem}}
+</style>
+</head>
+<body>
+
+<header class="banner">
+  <div class="btag">Deep Learning · PyTorch · Regression</div>
+  <h1>ML2021Spring <span class="hac">HW1</span><br>从零图解技术方案</h1>
+  <div class="bsub">COVID-19 确诊人数预测 ── 用图解和动画理解每一个核心概念，从原始数据到神经网络预测</div>
+  <div class="bpills">
+    <span class="bpill">监督回归</span><span class="bpill">MSE Loss</span><span class="bpill">SGD + Momentum</span>
+    <span class="bpill">Early Stopping</span><span class="bpill">93维输入</span><span class="bpill">Z-score标准化</span>
+  </div>
+</header>
+
+<div class="wrap">
+<nav class="side">
+  <div class="ntitle">目录</div>
+  <a class="nl" href="#s0">00 · 任务概览</a>
+  <a class="nl" href="#s1">01 · 数据结构</a>
+  <a class="ns" href="#s1a">列的含义</a>
+  <a class="ns" href="#s1b">划分策略</a>
+  <a class="ns" href="#s1c">标准化</a>
+  <a class="nl" href="#s2">02 · Dataset & DataLoader</a>
+  <a class="nl" href="#s3">03 · 神经网络</a>
+  <a class="ns" href="#s3a">网络结构</a>
+  <a class="ns" href="#s3b">激活函数</a>
+  <a class="ns" href="#s3c">MSE损失</a>
+  <a class="nl" href="#s4">04 · 训练流程</a>
+  <a class="ns" href="#s4a">六步循环</a>
+  <a class="ns" href="#s4b">反向传播</a>
+  <a class="ns" href="#s4c">梯度下降</a>
+  <a class="ns" href="#s4d">早停机制</a>
+  <a class="nl" href="#s5">05 · 超参数配置</a>
+  <a class="nl" href="#s6">06 · 推理与提交</a>
+  <a class="nl" href="#s7">07 · 优化建议</a>
+  <div class="ndiv"></div>
+  <div class="ntitle">核心概念</div>
+  <a class="ns" href="#c-onehot">One-hot编码</a>
+  <a class="ns" href="#c-zscore">Z-score标准化</a>
+  <a class="ns" href="#c-relu">ReLU激活</a>
+  <a class="ns" href="#c-backprop">反向传播</a>
+  <a class="ns" href="#c-momentum">Momentum</a>
+</nav>
+
+<main>
+
+<!-- ════════════════════ 00 任务概览 ════════════════════ -->
+<section class="sec" id="s0">
+  <div class="shead"><span class="snum">00</span><h2>任务概览</h2></div>
+
+  <p>给定美国各州连续三天的 COVID-19 流行病学数据，<strong>预测第四天的新增确诊人数</strong>。这是一个<strong>回归任务</strong>——输入是数值向量，输出是一个连续的实数。</p>
+
+  <!-- 完整 Pipeline 图 -->
+  <div class="viz">
+    <div class="viz-title">端到端 Pipeline — 从 CSV 到预测结果</div>
+    <svg viewBox="0 0 680 110" role="img" xmlns="http://www.w3.org/2000/svg">
+      <title>完整数据流水线</title>
+      <desc>CSV文件经过Dataset、DataLoader、NeuralNet、MSELoss，最终输出pred.csv</desc>
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- CSV -->
+      <rect x="14" y="32" width="86" height="46" rx="5" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+      <text x="57" y="52" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#1a3a6b" font-weight="500">CSV 文件</text>
+      <text x="57" y="67" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#1a3a6b">2700行 · 94列</text>
+      <text x="57" y="89" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">原始输入</text>
+
+      <line x1="100" y1="55" x2="118" y2="55" stroke="#aaa" stroke-width="1" marker-end="url(#ar)"/>
+
+      <!-- Dataset -->
+      <rect x="120" y="32" width="96" height="46" rx="5" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="168" y="52" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#0a5c45" font-weight="500">Dataset</text>
+      <text x="168" y="67" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#0a5c45">解析+划分+标准化</text>
+      <text x="168" y="89" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">90%训 / 10%验</text>
+
+      <line x1="216" y1="55" x2="234" y2="55" stroke="#aaa" stroke-width="1" marker-end="url(#ar)"/>
+
+      <!-- DataLoader -->
+      <rect x="236" y="32" width="96" height="46" rx="5" fill="#fef5dd" stroke="#e0b84a" stroke-width="0.5"/>
+      <text x="284" y="52" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#8a6200" font-weight="500">DataLoader</text>
+      <text x="284" y="67" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#8a6200">批量加载+打乱</text>
+      <text x="284" y="89" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">batch_size=270</text>
+
+      <line x1="332" y1="55" x2="350" y2="55" stroke="#aaa" stroke-width="1" marker-end="url(#ar)"/>
+
+      <!-- NeuralNet -->
+      <rect x="352" y="22" width="100" height="66" rx="5" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="402" y="47" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="white" font-weight="500">NeuralNet</text>
+      <text x="402" y="62" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="rgba(255,255,255,.72)">93→64→1</text>
+      <text x="402" y="76" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="rgba(255,255,255,.72)">Linear+ReLU</text>
+      <text x="402" y="98" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="rgba(255,255,255,.45)">训练时反向传播</text>
+
+      <line x1="452" y1="55" x2="470" y2="55" stroke="#aaa" stroke-width="1" marker-end="url(#ar)"/>
+
+      <!-- MSE -->
+      <rect x="472" y="32" width="82" height="46" rx="5" fill="#fde8e5" stroke="#e8a09a" stroke-width="0.5"/>
+      <text x="513" y="52" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#c0392b" font-weight="500">MSE Loss</text>
+      <text x="513" y="67" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#c0392b">训练时有</text>
+      <text x="513" y="89" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">指导参数更新</text>
+
+      <line x1="554" y1="55" x2="572" y2="55" stroke="#aaa" stroke-width="1" marker-end="url(#ar)"/>
+
+      <!-- pred.csv -->
+      <rect x="574" y="32" width="92" height="46" rx="5" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="620" y="52" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#0a5c45" font-weight="500">pred.csv</text>
+      <text x="620" y="67" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#0a5c45">893条预测</text>
+      <text x="620" y="89" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">提交结果</text>
+
+      <!-- 反向传播回路箭头 (绕过顶部) -->
+      <path d="M513 32 Q513 14 402 14 Q350 14 352 22" fill="none" stroke="#c0392b" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#ar)"/>
+      <text x="440" y="11" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#c0392b">反向传播更新权重</text>
+    </svg>
+  </div>
+
+  <div class="call b">
+    <div class="ctitle">什么是回归？</div>
+    与分类（输出类别标签）不同，回归的输出是<strong>连续数值</strong>。本任务输入 93 个特征，输出"明天的确诊人数"——可能是 1234.5 这样的小数，模型不需要判断类别，只需尽量逼近真实数字。
+  </div>
+</section>
+
+<!-- ════════════════════ 01 数据结构 ════════════════════ -->
+<section class="sec" id="s1">
+  <div class="shead"><span class="snum">01</span><h2>数据结构详解</h2></div>
+
+  <h3 id="s1a">每行数据的列含义</h3>
+  <p>训练集共 2700 行，每行代表<strong>某州某个三天时间窗口</strong>的观测，共 94 列：</p>
+
+  <!-- 数据列图 -->
+  <div class="viz">
+    <div class="viz-title">一行训练数据的列构成 — 94列的含义</div>
+    <svg viewBox="0 0 680 130" role="img" xmlns="http://www.w3.org/2000/svg">
+      <title>训练集列构成图</title>
+      <desc>共94列：ID跳过、40个州one-hot、三天各18项指标、最后一列为标签</desc>
+
+      <!-- ID列 -->
+      <rect x="12" y="28" width="34" height="54" rx="3" fill="#eeece8" stroke="#ccc5b5" stroke-width="0.5"/>
+      <text x="29" y="52" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#aaa">ID</text>
+      <text x="29" y="65" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#bbb">跳过</text>
+      <text x="29" y="93" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7" fill="#aaa">col 0</text>
+
+      <!-- 州 one-hot -->
+      <rect x="52" y="28" width="150" height="54" rx="3" fill="#e8eef8" stroke="#8aacda" stroke-width="0.6"/>
+      <text x="127" y="50" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#1a3a6b" font-weight="500">40个州 one-hot</text>
+      <text x="127" y="65" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#1a3a6b">每格只有 0 或 1</text>
+      <text x="127" y="78" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#1a3a6b">不做标准化</text>
+      <text x="127" y="93" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">col 1–40</text>
+
+      <!-- Day1 -->
+      <rect x="208" y="28" width="118" height="54" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.6"/>
+      <text x="267" y="50" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#0a5c45" font-weight="500">第1天</text>
+      <text x="267" y="65" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">18项流行病指标</text>
+      <text x="267" y="78" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">Z-score标准化</text>
+      <text x="267" y="93" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">col 41–58</text>
+
+      <!-- Day2 -->
+      <rect x="332" y="28" width="118" height="54" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.6"/>
+      <text x="391" y="50" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#0a5c45" font-weight="500">第2天</text>
+      <text x="391" y="65" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">18项流行病指标</text>
+      <text x="391" y="78" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">Z-score标准化</text>
+      <text x="391" y="93" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">col 59–76</text>
+
+      <!-- Day3 -->
+      <rect x="456" y="28" width="118" height="54" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.6"/>
+      <text x="515" y="50" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#0a5c45" font-weight="500">第3天</text>
+      <text x="515" y="65" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">17项（少1项）</text>
+      <text x="515" y="78" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">Z-score标准化</text>
+      <text x="515" y="93" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">col 77–93</text>
+
+      <!-- 标签 -->
+      <rect x="580" y="18" width="88" height="74" rx="3" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="624" y="46" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="white" font-weight="500">标签 y</text>
+      <text x="624" y="61" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="rgba(255,255,255,.8)">第4天确诊数</text>
+      <text x="624" y="75" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="rgba(255,255,255,.8)">仅训练集有</text>
+      <text x="624" y="93" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="rgba(255,255,255,.45)">col 94</text>
+
+      <!-- 底部说明线 -->
+      <line x1="52" y1="112" x2="574" y2="112" stroke="#ccc5b5" stroke-width="0.5"/>
+      <text x="313" y="124" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">← 输入特征 X，共93维（跳过ID列）</text>
+      <text x="624" y="124" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#1a3a6b">目标 y</text>
+    </svg>
+  </div>
+
+  <!-- One-hot 概念框 -->
+  <div class="concept" id="c-onehot">
+    <div class="concept-tag">概念解释</div>
+    <h4>什么是 One-hot 编码？</h4>
+    <p>有 40 个州，如果用数字 1–40 代表各州，模型会误以为"州40"比"州1"大 40 倍——这没有意义。One-hot 用一个长度为 40 的向量，当前州对应位置填 1，其余全 0，彻底消除这种虚假的数量关系。</p>
+    <div class="viz" style="margin:.6rem 0 0">
+      <svg viewBox="0 0 680 64" xmlns="http://www.w3.org/2000/svg">
+        <!-- 州格子 40个 -->
+        <text x="18" y="22" font-family="'Noto Sans SC'" font-size="9" fill="#7a7060">加州 (CA)：</text>
+        <!-- 40个小格 -->
+        <rect x="88" y="10" width="14" height="14" rx="2" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+        <rect x="104" y="10" width="14" height="14" rx="2" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+        <rect x="120" y="10" width="14" height="14" rx="2" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+        <text x="127" y="21" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="white">1</text>
+        <rect x="136" y="10" width="14" height="14" rx="2" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+        <rect x="152" y="10" width="14" height="14" rx="2" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+        <text x="172" y="21" font-family="'JetBrains Mono'" font-size="9" fill="#aaa">… (共40格，只有CA位置=1)</text>
+        <text x="88" y="38" font-family="'JetBrains Mono'" font-size="8.5" fill="#aaa">0</text>
+        <text x="104" y="38" font-family="'JetBrains Mono'" font-size="8.5" fill="#aaa">0</text>
+        <text x="120" y="38" font-family="'JetBrains Mono'" font-size="8.5" fill="#1a3a6b" font-weight="500">1</text>
+        <text x="136" y="38" font-family="'JetBrains Mono'" font-size="8.5" fill="#aaa">0</text>
+        <text x="152" y="38" font-family="'JetBrains Mono'" font-size="8.5" fill="#aaa">0</text>
+        <text x="18" y="54" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">特点：值只有0或1，各州"地位平等"，无大小关系，不需要标准化</text>
+      </svg>
+    </div>
+  </div>
+
+  <h3 id="s1b">训练 / 验证集划分</h3>
+  <p>用<strong>固定索引规则</strong>划分，不随机打乱：索引 % 10 == 0 的样本进验证集，其余进训练集：</p>
+
+  <div class="viz">
+    <div class="viz-title">9:1 划分示意 — 每10条取第0条为验证集</div>
+    <svg viewBox="0 0 680 78" xmlns="http://www.w3.org/2000/svg">
+      <!-- 格子 0-19 + 20 + ... -->
+      <!-- 0=蓝, 1-9=绿, 10=蓝, 11-19=绿, 20=蓝 -->
+      <rect x="20" y="20" width="26" height="26" rx="3" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="33" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="white">0</text>
+      <rect x="48" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="61" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">1</text>
+      <rect x="76" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="89" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">2</text>
+      <rect x="104" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="117" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">3</text>
+      <rect x="132" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="145" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">4</text>
+      <rect x="160" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="173" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">5</text>
+      <rect x="188" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="201" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">6</text>
+      <rect x="216" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="229" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">7</text>
+      <rect x="244" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="257" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">8</text>
+      <rect x="272" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="285" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">9</text>
+      <rect x="300" y="20" width="26" height="26" rx="3" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="313" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="white">10</text>
+      <rect x="328" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="341" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">11</text>
+      <rect x="356" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="369" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">…</text>
+      <rect x="384" y="20" width="26" height="26" rx="3" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="397" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45">19</text>
+      <rect x="412" y="20" width="26" height="26" rx="3" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="425" y="37" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="white">20</text>
+      <text x="445" y="36" font-family="'JetBrains Mono'" font-size="11" fill="#aaa">…</text>
+
+      <!-- 图例 -->
+      <rect x="486" y="24" width="12" height="12" rx="2" fill="#1a3a6b"/>
+      <text x="502" y="34" font-family="'Noto Sans SC'" font-size="9" fill="#1a3a6b">验证集 270条（10%）</text>
+      <rect x="486" y="42" width="12" height="12" rx="2" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="502" y="52" font-family="'Noto Sans SC'" font-size="9" fill="#0a5c45">训练集 2430条（90%）</text>
+
+      <text x="20" y="68" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">规则：i % 10 == 0 → 验证集 ； 其余 → 训练集</text>
+    </svg>
+  </div>
+
+  <h3 id="s1c" id="c-zscore">特征标准化（Z-score）</h3>
+  <p>时间序列特征（第41列起）的数量级差异巨大——"检测人数"可能是万级，"阳性率"是小数。不标准化会导致梯度方向偏斜、收敛慢。Z-score 将每个特征拉到均值=0、标准差=1：</p>
+
+  <div class="formula">x_new = (x − mean) / std</div>
+
+  <!-- 标准化对比图 -->
+  <div class="viz">
+    <div class="viz-title">标准化前后对比 — 量纲统一后梯度下降更稳</div>
+    <svg viewBox="0 0 680 148" xmlns="http://www.w3.org/2000/svg">
+      <!-- 左：未标准化 -->
+      <text x="152" y="18" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10.5" fill="#c0392b" font-weight="500">未标准化</text>
+      <text x="152" y="31" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">量纲差异大，梯度偏向大值特征</text>
+
+      <!-- 高低不一的柱 -->
+      <line x1="28" y1="120" x2="276" y2="120" stroke="#ccc5b5" stroke-width="0.5"/>
+      <rect x="42" y="100" width="18" height="20" rx="2" fill="#378add" opacity=".7"/>
+      <rect x="72" y="52" width="18" height="68" rx="2" fill="#e85d24" opacity=".7"/>
+      <rect x="102" y="82" width="18" height="38" rx="2" fill="#1d9e75" opacity=".7"/>
+      <rect x="132" y="38" width="18" height="82" rx="2" fill="#b8860b" opacity=".7"/>
+      <rect x="162" y="108" width="18" height="12" rx="2" fill="#534ab7" opacity=".7"/>
+      <rect x="192" y="68" width="18" height="52" rx="2" fill="#c0392b" opacity=".7"/>
+      <text x="51" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">A</text>
+      <text x="81" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">B</text>
+      <text x="111" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">C</text>
+      <text x="141" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">D</text>
+      <text x="171" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">E</text>
+      <text x="201" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">F</text>
+
+      <!-- 中间箭头 -->
+      <text x="296" y="80" text-anchor="middle" font-family="'Noto Sans SC'" font-size="16" fill="#ccc5b5">→</text>
+      <text x="296" y="98" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">Z-score</text>
+      <text x="296" y="110" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">(x-μ)/σ</text>
+
+      <!-- 右：标准化后 -->
+      <text x="530" y="18" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10.5" fill="#0a5c45" font-weight="500">标准化后</text>
+      <text x="530" y="31" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">均值=0，标准差=1，梯度方向均衡</text>
+
+      <!-- 高度相近的柱 -->
+      <line x1="406" y1="120" x2="654" y2="120" stroke="#ccc5b5" stroke-width="0.5"/>
+      <!-- 均值=0 线 -->
+      <line x1="406" y1="96" x2="654" y2="96" stroke="#0a5c45" stroke-width="0.7" stroke-dasharray="3 2"/>
+      <text x="658" y="99" font-family="'JetBrains Mono'" font-size="7.5" fill="#0a5c45">μ=0</text>
+
+      <rect x="420" y="82" width="18" height="38" rx="2" fill="#378add" opacity=".75"/>
+      <rect x="450" y="78" width="18" height="42" rx="2" fill="#e85d24" opacity=".75"/>
+      <rect x="480" y="80" width="18" height="40" rx="2" fill="#1d9e75" opacity=".75"/>
+      <rect x="510" y="76" width="18" height="44" rx="2" fill="#b8860b" opacity=".75"/>
+      <rect x="540" y="82" width="18" height="38" rx="2" fill="#534ab7" opacity=".75"/>
+      <rect x="570" y="79" width="18" height="41" rx="2" fill="#c0392b" opacity=".75"/>
+      <text x="429" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">A</text>
+      <text x="459" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">B</text>
+      <text x="489" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">C</text>
+      <text x="519" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">D</text>
+      <text x="549" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">E</text>
+      <text x="579" y="132" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">F</text>
+    </svg>
+  </div>
+
+  <div class="call t">
+    <div class="ctitle">为什么 one-hot 列不标准化？</div>
+    One-hot 的值只有 0 或 1，已经处于相同量级，标准化反而会破坏这种离散性质，让 0/1 变成非整数，增加不必要的噪声。
+  </div>
+</section>
+
+<!-- ════════════════════ 02 Dataset & DataLoader ════════════════════ -->
+<section class="sec" id="s2">
+  <div class="shead"><span class="snum">02</span><h2>Dataset 与 DataLoader</h2></div>
+
+  <p><code class="i">Dataset</code> 像一个"数据仓库"，知道第 i 条数据在哪、长什么样；<code class="i">DataLoader</code> 像"配货员"，每次取出一批送给模型：</p>
+
+  <div class="viz">
+    <div class="viz-title">Dataset 三个必须方法 + DataLoader 协作关系</div>
+    <svg viewBox="0 0 680 194" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+      <!-- Dataset 大框 -->
+      <rect x="14" y="14" width="310" height="162" rx="8" fill="#e8eef8" stroke="#8aacda" stroke-width="0.6"/>
+      <text x="169" y="36" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#1a3a6b" font-weight="500">COVID19Dataset</text>
+      <text x="169" y="50" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#6080a0">继承 torch.utils.data.Dataset</text>
+
+      <!-- __init__ -->
+      <rect x="28" y="58" width="282" height="32" rx="4" fill="white" stroke="#8aacda" stroke-width="0.5"/>
+      <text x="44" y="73" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45" font-weight="500">__init__(path, mode)</text>
+      <text x="44" y="84" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">读CSV · 选列 · 划分 · 标准化 · 转Tensor</text>
+
+      <!-- __getitem__ -->
+      <rect x="28" y="96" width="282" height="32" rx="4" fill="white" stroke="#8aacda" stroke-width="0.5"/>
+      <text x="44" y="111" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45" font-weight="500">__getitem__(idx)</text>
+      <text x="44" y="122" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">返回第idx条 → (x_tensor, y_tensor)</text>
+
+      <!-- __len__ -->
+      <rect x="28" y="134" width="282" height="32" rx="4" fill="white" stroke="#8aacda" stroke-width="0.5"/>
+      <text x="44" y="149" font-family="'JetBrains Mono'" font-size="9" fill="#0a5c45" font-weight="500">__len__()</text>
+      <text x="44" y="160" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">返回样本总数（2430 / 270 / 893）</text>
+
+      <!-- 箭头 -->
+      <line x1="324" y1="95" x2="356" y2="95" stroke="#999" stroke-width="1" marker-end="url(#ar2)"/>
+      <text x="340" y="88" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">包装</text>
+
+      <!-- DataLoader -->
+      <rect x="358" y="58" width="172" height="74" rx="8" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.6"/>
+      <text x="444" y="80" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#0a5c45" font-weight="500">DataLoader</text>
+      <text x="444" y="96" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#0a5c45">batch_size=270</text>
+      <text x="444" y="110" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#0a5c45">shuffle=True(训练)</text>
+      <text x="444" y="122" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#0a5c45">pin_memory=True</text>
+
+      <!-- 箭头到模型 -->
+      <line x1="530" y1="95" x2="562" y2="95" stroke="#999" stroke-width="1" marker-end="url(#ar2)"/>
+      <text x="546" y="88" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">batch</text>
+
+      <!-- 模型框 -->
+      <rect x="564" y="52" width="102" height="86" rx="8" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="615" y="80" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="white" font-weight="500">NeuralNet</text>
+      <text x="615" y="96" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="rgba(255,255,255,.7)">x: (270,93)</text>
+      <text x="615" y="110" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="rgba(255,255,255,.7)">→ pred:(270,)</text>
+      <text x="615" y="124" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="rgba(255,255,255,.45)">每次一批</text>
+    </svg>
+  </div>
+
+  <div class="call">
+    <div class="ctitle">为什么需要 DataLoader？</div>
+    将 2430 条全部一次输入显存不够，梯度估计也偏（方差大）。DataLoader 每次取 270 条，模型频繁更新参数（每批1次），2430 ÷ 270 = <strong>9步</strong>完成1个epoch，内存可控，收敛更快。
+  </div>
+</section>
+
+<!-- ════════════════════ 03 神经网络 ════════════════════ -->
+<section class="sec" id="s3">
+  <div class="shead"><span class="snum">03</span><h2>神经网络结构</h2></div>
+
+  <h3 id="s3a">网络结构图解</h3>
+  <p>基线模型是一个两层<strong>全连接神经网络（MLP）</strong>。每个神经元连接上一层所有神经元，通过加权求和学习特征的组合：</p>
+
+  <!-- MLP 结构图 -->
+  <div class="viz">
+    <div class="viz-title">NeuralNet 前向传播 — 93维输入如何变成1维预测</div>
+    <svg viewBox="0 0 680 228" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+      <!-- 输入层 (5个代表圆) -->
+      <text x="50" y="16" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10" fill="#1a3a6b" font-weight="500">输入层</text>
+      <text x="50" y="29" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">93维</text>
+      <circle cx="50" cy="58"  r="9" fill="#e8eef8" stroke="#8aacda" stroke-width="0.8"/>
+      <circle cx="50" cy="84"  r="9" fill="#e8eef8" stroke="#8aacda" stroke-width="0.8"/>
+      <circle cx="50" cy="110" r="9" fill="#e8eef8" stroke="#8aacda" stroke-width="0.8"/>
+      <text x="50" y="130" text-anchor="middle" font-family="'JetBrains Mono'" font-size="12" fill="#ccc">⋮</text>
+      <circle cx="50" cy="150" r="9" fill="#e8eef8" stroke="#8aacda" stroke-width="0.8"/>
+      <text x="50" y="173" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">x₁ … x₉₃</text>
+
+      <!-- 连线（代表全连接，稀疏示意） -->
+      <line x1="59" y1="58"  x2="142" y2="74"  stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="58"  x2="142" y2="98"  stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="58"  x2="142" y2="122" stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="84"  x2="142" y2="74"  stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="84"  x2="142" y2="98"  stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="84"  x2="142" y2="146" stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="110" x2="142" y2="98"  stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="110" x2="142" y2="122" stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="150" x2="142" y2="122" stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+      <line x1="59" y1="150" x2="142" y2="146" stroke="#ccc5b5" stroke-width="0.4" opacity=".8"/>
+
+      <!-- Linear(93,64) 标注 -->
+      <rect x="78" y="180" width="118" height="28" rx="3" fill="#fef5dd" stroke="#e0b84a" stroke-width="0.5"/>
+      <text x="137" y="194" text-anchor="middle" font-family="'Noto Sans SC'" font-size="9.5" fill="#8a6200" font-weight="500">Linear(93, 64)</text>
+      <text x="137" y="203" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#8a6200">y = W·x + b</text>
+
+      <!-- 隐藏层 -->
+      <text x="158" y="16" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10" fill="#1a3a6b" font-weight="500">隐藏层</text>
+      <text x="158" y="29" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">64维</text>
+      <circle cx="158" cy="58"  r="9" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <circle cx="158" cy="84"  r="9" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <circle cx="158" cy="110" r="9" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="158" y="130" text-anchor="middle" font-family="'JetBrains Mono'" font-size="12" fill="#1a3a6b">⋮</text>
+      <circle cx="158" cy="150" r="9" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="158" y="173" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">64个神经元</text>
+
+      <!-- ReLU 激活框 -->
+      <rect x="186" y="72" width="100" height="60" rx="5" fill="#fde8e5" stroke="#e8a09a" stroke-width="0.7"/>
+      <text x="236" y="95" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#c0392b" font-weight="500">ReLU</text>
+      <text x="236" y="110" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#c0392b">max(0, x)</text>
+      <!-- 折线图示 ReLU -->
+      <polyline points="198,123 214,123 232,105" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="198" y1="123" x2="190" y2="123" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round"/>
+      <text x="236" y="122" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#c0392b">引入非线性</text>
+
+      <line x1="167" y1="102" x2="184" y2="102" stroke="#999" stroke-width="1" marker-end="url(#ar3)"/>
+      <line x1="286" y1="102" x2="318" y2="102" stroke="#999" stroke-width="1" marker-end="url(#ar3)"/>
+
+      <!-- Linear(64,1) 标注 -->
+      <rect x="302" y="180" width="108" height="28" rx="3" fill="#fef5dd" stroke="#e0b84a" stroke-width="0.5"/>
+      <text x="356" y="194" text-anchor="middle" font-family="'Noto Sans SC'" font-size="9.5" fill="#8a6200" font-weight="500">Linear(64, 1)</text>
+      <text x="356" y="203" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#8a6200">64维 → 1维</text>
+
+      <!-- 激活后层 -->
+      <circle cx="322" cy="78"  r="9" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <circle cx="322" cy="102" r="9" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <circle cx="322" cy="126" r="9" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="322" y="16" text-anchor="middle" font-family="'Noto Sans SC'" font-size="9" fill="#7a7060">激活后特征</text>
+
+      <line x1="331" y1="78"  x2="428" y2="103" stroke="#ccc5b5" stroke-width="0.5" opacity=".8"/>
+      <line x1="331" y1="102" x2="428" y2="103" stroke="#ccc5b5" stroke-width="0.5" opacity=".8"/>
+      <line x1="331" y1="126" x2="428" y2="103" stroke="#ccc5b5" stroke-width="0.5" opacity=".8"/>
+
+      <!-- 输出 -->
+      <text x="442" y="16" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10" fill="#c0392b" font-weight="500">输出</text>
+      <text x="442" y="29" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">1维</text>
+      <circle cx="442" cy="103" r="14" fill="#c0392b" stroke="#c0392b" stroke-width="0.5"/>
+      <text x="442" y="108" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9.5" fill="white">ŷ</text>
+      <text x="442" y="130" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#c0392b">.squeeze(1)</text>
+      <text x="442" y="141" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#7a7060">(270,1)→(270,)</text>
+      <text x="442" y="173" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">预测值</text>
+
+      <!-- 形状变化卡 -->
+      <rect x="488" y="40" width="178" height="134" rx="6" fill="#f5f2ed" stroke="#ccc5b5" stroke-width="0.5"/>
+      <text x="577" y="60" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10" fill="#1a3a6b" font-weight="500">数据形状追踪</text>
+      <text x="500" y="78" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">输入 x</text>
+      <text x="656" y="78" text-anchor="end" font-family="'JetBrains Mono'" font-size="8.5" fill="#1a3a6b">(270, 93)</text>
+      <text x="500" y="95" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">→ Linear1</text>
+      <text x="656" y="95" text-anchor="end" font-family="'JetBrains Mono'" font-size="8.5" fill="#8a6200">(270, 64)</text>
+      <text x="500" y="112" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">→ ReLU</text>
+      <text x="656" y="112" text-anchor="end" font-family="'JetBrains Mono'" font-size="8.5" fill="#c0392b">(270, 64)</text>
+      <text x="500" y="129" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">→ Linear2</text>
+      <text x="656" y="129" text-anchor="end" font-family="'JetBrains Mono'" font-size="8.5" fill="#8a6200">(270, 1)</text>
+      <text x="500" y="146" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">→ squeeze</text>
+      <text x="656" y="146" text-anchor="end" font-family="'JetBrains Mono'" font-size="8.5" fill="#c0392b">(270,)</text>
+      <text x="500" y="163" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">270 = batch大小</text>
+
+      <text x="44" y="210" font-family="'Noto Sans SC'" font-size="8.5" fill="#c0392b">若无ReLU：多层线性 = 一层线性，无法学习非线性关系。ReLU将负值置零，使网络能拟合复杂模式。</text>
+    </svg>
+  </div>
+
+  <h3 id="s3b" id="c-relu">激活函数 ReLU 的意义</h3>
+
+  <div class="concept">
+    <div class="concept-tag">概念解释</div>
+    <h4>为什么需要激活函数？</h4>
+    <p>两个线性变换叠加 <code class="i">W₂(W₁x+b₁)+b₂</code>，展开后仍然是 <code class="i">W·x + b</code>，与一层没有本质区别。激活函数引入非线性——ReLU 对负值输出 0，正值原样输出——打破线性限制，让深层网络能表达复杂的非线性函数。</p>
+  </div>
+
+  <h3 id="s3c">损失函数：均方误差 MSE</h3>
+  <p>MSE 计算预测值与真实值的<strong>平均平方误差</strong>，作为衡量模型好坏的数值信号：</p>
+
+  <div class="formula">MSE = (1/N) × Σᵢ (ŷᵢ − yᵢ)²</div>
+
+  <!-- MSE 直觉图 -->
+  <div class="viz">
+    <div class="viz-title">MSE 直觉 — 平方放大大误差，激励模型精确预测</div>
+    <svg viewBox="0 0 680 148" xmlns="http://www.w3.org/2000/svg">
+      <!-- 坐标轴 -->
+      <line x1="40" y1="16" x2="40" y2="122" stroke="#ccc5b5" stroke-width="0.7"/>
+      <line x1="40" y1="122" x2="450" y2="122" stroke="#ccc5b5" stroke-width="0.7"/>
+      <text x="28" y="20" font-family="'Noto Sans SC'" font-size="9" fill="#7a7060">值</text>
+      <text x="454" y="125" font-family="'Noto Sans SC'" font-size="9" fill="#7a7060">样本</text>
+
+      <!-- 真实值点 -->
+      <circle cx="86"  cy="66" r="5" fill="#1a3a6b"/>
+      <circle cx="146" cy="38" r="5" fill="#1a3a6b"/>
+      <circle cx="206" cy="90" r="5" fill="#1a3a6b"/>
+      <circle cx="266" cy="50" r="5" fill="#1a3a6b"/>
+      <circle cx="326" cy="82" r="5" fill="#1a3a6b"/>
+      <circle cx="386" cy="32" r="5" fill="#1a3a6b"/>
+
+      <!-- 预测值点 -->
+      <circle cx="86"  cy="86"  r="5" fill="#c0392b"/>
+      <circle cx="146" cy="58"  r="5" fill="#c0392b"/>
+      <circle cx="206" cy="76"  r="5" fill="#c0392b"/>
+      <circle cx="266" cy="72"  r="5" fill="#c0392b"/>
+      <circle cx="326" cy="68"  r="5" fill="#c0392b"/>
+      <circle cx="386" cy="54"  r="5" fill="#c0392b"/>
+
+      <!-- 误差线 -->
+      <line x1="86"  y1="66" x2="86"  y2="86"  stroke="#e08060" stroke-width="1.5" stroke-dasharray="2 1.5"/>
+      <line x1="146" y1="38" x2="146" y2="58"  stroke="#e08060" stroke-width="1.5" stroke-dasharray="2 1.5"/>
+      <line x1="206" y1="76" x2="206" y2="90"  stroke="#e08060" stroke-width="1.5" stroke-dasharray="2 1.5"/>
+      <line x1="266" y1="50" x2="266" y2="72"  stroke="#e08060" stroke-width="1.5" stroke-dasharray="2 1.5"/>
+      <line x1="326" y1="68" x2="326" y2="82"  stroke="#e08060" stroke-width="1.5" stroke-dasharray="2 1.5"/>
+      <line x1="386" y1="32" x2="386" y2="54"  stroke="#e08060" stroke-width="1.5" stroke-dasharray="2 1.5"/>
+
+      <!-- 图例 -->
+      <circle cx="472" cy="36" r="5" fill="#1a3a6b"/>
+      <text x="482" y="40" font-family="'Noto Sans SC'" font-size="9.5" fill="#1a3a6b">真实值 y</text>
+      <circle cx="472" cy="58" r="5" fill="#c0392b"/>
+      <text x="482" y="62" font-family="'Noto Sans SC'" font-size="9.5" fill="#c0392b">预测值 ŷ</text>
+      <line x1="468" y1="80" x2="482" y2="80" stroke="#e08060" stroke-width="1.5" stroke-dasharray="2 1.5"/>
+      <text x="482" y="84" font-family="'Noto Sans SC'" font-size="9.5" fill="#e08060">误差 (ŷ-y)</text>
+
+      <!-- 公式框 -->
+      <rect x="468" y="98" width="198" height="26" rx="4" fill="#1a1610"/>
+      <text x="567" y="115" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9.5" fill="#f0c060">MSE = mean((ŷ-y)²)</text>
+
+      <text x="40" y="140" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">平方的意义：误差×2倍 → 损失×4倍；大错误被重惩，正负误差对称处理</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════════════════ 04 训练流程 ════════════════════ -->
+<section class="sec" id="s4">
+  <div class="shead"><span class="snum">04</span><h2>训练流程</h2></div>
+
+  <h3 id="s4a">每个 Mini-batch 的训练六步</h3>
+  <p>每处理一个 batch，固定执行以下六步——这是深度学习训练的<strong>标准心跳</strong>：</p>
+
+  <!-- 六步训练循环 -->
+  <div class="stepper">
+    <div class="step-tabs" id="stepTabs">
+      <button class="step-tab on" data-idx="0">① 清空梯度</button>
+      <button class="step-tab" data-idx="1">② 前向传播</button>
+      <button class="step-tab" data-idx="2">③ 计算损失</button>
+      <button class="step-tab" data-idx="3">④ 反向传播</button>
+      <button class="step-tab" data-idx="4">⑤ 更新参数</button>
+      <button class="step-tab" data-idx="5">⑥ 记录损失</button>
+    </div>
+
+    <div class="step-panel on" data-idx="0">
+      <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg">
+        <rect x="120" y="28" width="440" height="72" rx="8" fill="#e8eef8" stroke="#8aacda" stroke-width="0.6"/>
+        <text x="340" y="55" text-anchor="middle" font-family="'Noto Sans SC'" font-size="12" fill="#1a3a6b" font-weight="500">optimizer.zero_grad()</text>
+        <text x="340" y="74" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#1a3a6b">将所有参数的 .grad 属性清零</text>
+        <text x="340" y="89" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9" fill="#6080a0">防止梯度在多个 batch 之间累积叠加</text>
+        <text x="340" y="118" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">PyTorch 不会自动清零梯度——每次反向传播都会把新梯度加到已有梯度上，必须手动清零</text>
+      </svg>
+    </div>
+    <div class="step-panel" data-idx="1">
+      <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ar4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <rect x="30" y="40" width="120" height="44" rx="5" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+        <text x="90" y="60" text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="#1a3a6b">x_batch</text>
+        <text x="90" y="76" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#6080a0">(270, 93)</text>
+        <line x1="150" y1="62" x2="196" y2="62" stroke="#999" stroke-width="1" marker-end="url(#ar4)"/>
+        <rect x="198" y="28" width="168" height="68" rx="5" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+        <text x="282" y="53" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="white" font-weight="500">model(x)</text>
+        <text x="282" y="69" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="rgba(255,255,255,.7)">Linear → ReLU → Linear</text>
+        <text x="282" y="82" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="rgba(255,255,255,.55)">PyTorch自动构建计算图</text>
+        <line x1="366" y1="62" x2="412" y2="62" stroke="#999" stroke-width="1" marker-end="url(#ar4)"/>
+        <rect x="414" y="40" width="120" height="44" rx="5" fill="#fde8e5" stroke="#e8a09a" stroke-width="0.5"/>
+        <text x="474" y="60" text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="#c0392b">pred</text>
+        <text x="474" y="76" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#c0392b">(270,) 预测值</text>
+        <text x="340" y="118" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">前向传播：数据从输入层经过网络各层计算，得到预测值 ŷ；同时 PyTorch 在后台记录计算图，供反向传播使用</text>
+      </svg>
+    </div>
+    <div class="step-panel" data-idx="2">
+      <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ar5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <rect x="30" y="40" width="120" height="44" rx="5" fill="#fde8e5" stroke="#e8a09a" stroke-width="0.5"/>
+        <text x="90" y="60" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9.5" fill="#c0392b">pred (270,)</text>
+        <rect x="222" y="40" width="120" height="44" rx="5" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+        <text x="282" y="60" text-anchor="middle" font-family="'JetBrains Mono'" font-size="9.5" fill="#0a5c45">label (270,)</text>
+        <line x1="150" y1="62" x2="368" y2="62" stroke="#999" stroke-width="1" marker-end="url(#ar5)"/>
+        <text x="260" y="52" text-anchor="middle" font-family="'Noto Sans SC'" font-size="9" fill="#8a6200">cal_loss(pred, label)</text>
+        <rect x="370" y="36" width="140" height="52" rx="5" fill="#fef5dd" stroke="#e0b84a" stroke-width="0.6"/>
+        <text x="440" y="57" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#8a6200" font-weight="500">loss (scalar)</text>
+        <text x="440" y="72" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#8a6200">mean((pred-label)²)</text>
+        <text x="440" y="83" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#aaa">一个数字，越小越好</text>
+        <text x="340" y="118" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">损失是一个标量，代表这个batch的预测有多差。它是整个训练的"指南针"，指引参数应该怎么调整。</text>
+      </svg>
+    </div>
+    <div class="step-panel" data-idx="3">
+      <svg viewBox="0 0 680 140" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ar6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <!-- 箭头从loss往左（反向） -->
+        <rect x="490" y="34" width="130" height="44" rx="5" fill="#fef5dd" stroke="#e0b84a" stroke-width="0.5"/>
+        <text x="555" y="57" text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="#8a6200">loss</text>
+        <text x="555" y="70" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#aaa">.backward()</text>
+        <!-- 红色反向箭头 -->
+        <line x1="490" y1="56" x2="440" y2="56" stroke="#c0392b" stroke-width="1.5" marker-end="url(#ar6)"/>
+        <rect x="290" y="34" width="148" height="44" rx="5" fill="#fde8e5" stroke="#e8a09a" stroke-width="0.6"/>
+        <text x="364" y="55" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#c0392b" font-weight="500">Linear2 梯度</text>
+        <text x="364" y="70" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#c0392b">∂loss/∂W₂, ∂loss/∂b₂</text>
+        <line x1="290" y1="56" x2="240" y2="56" stroke="#c0392b" stroke-width="1.5" marker-end="url(#ar6)"/>
+        <rect x="60" y="34" width="178" height="44" rx="5" fill="#fde8e5" stroke="#e8a09a" stroke-width="0.6"/>
+        <text x="149" y="55" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#c0392b" font-weight="500">Linear1 梯度</text>
+        <text x="149" y="70" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#c0392b">∂loss/∂W₁, ∂loss/∂b₁</text>
+        <text x="14" y="60" font-family="'Noto Sans SC'" font-size="8" fill="#c0392b">←</text>
+        <!-- 标注 -->
+        <text x="340" y="100" text-anchor="middle" font-family="'Noto Sans SC'" font-size="9.5" fill="#c0392b">反向传播：从loss出发，利用链式法则逐层计算梯度（斜率）</text>
+        <text x="340" y="115" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">梯度告诉我们：每个参数往哪个方向调、调多少，才能让loss减小</text>
+        <text x="340" y="130" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#1a3a6b">PyTorch 的 autograd 自动完成所有微分运算，无需手写公式</text>
+      </svg>
+    </div>
+    <div class="step-panel" data-idx="4">
+      <svg viewBox="0 0 680 128" xmlns="http://www.w3.org/2000/svg">
+        <rect x="60" y="24" width="560" height="68" rx="8" fill="#e8eef8" stroke="#8aacda" stroke-width="0.6"/>
+        <text x="340" y="48" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#1a3a6b" font-weight="500">optimizer.step()</text>
+        <!-- 公式 -->
+        <text x="340" y="66" text-anchor="middle" font-family="'JetBrains Mono'" font-size="10" fill="#1a3a6b">W ← W − lr × ∇W</text>
+        <text x="340" y="82" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#6080a0">velocity = 0.9 × velocity + ∇W   (Momentum)</text>
+        <!-- 说明 -->
+        <text x="340" y="106" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">每个参数沿梯度反方向移动一小步（步长=学习率lr=0.001）。</text>
+        <text x="340" y="120" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">Momentum=0.9 积累历史梯度方向，如同"滚球"，越过局部小坑，收敛更稳。</text>
+      </svg>
+    </div>
+    <div class="step-panel" data-idx="5">
+      <svg viewBox="0 0 680 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="60" y="18" width="560" height="56" rx="8" fill="#eeece8" stroke="#ccc5b5" stroke-width="0.6"/>
+        <text x="340" y="42" text-anchor="middle" font-family="'Noto Sans SC'" font-size="11" fill="#5a5040" font-weight="500">train_losses.append(loss.item())</text>
+        <text x="340" y="60" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">将本batch的loss记录到列表，epoch结束后求均值，绘制学习曲线</text>
+        <text x="340" y="90" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">学习曲线下降说明模型在进步；验证集曲线回升说明过拟合开始了 → 触发早停</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 循环说明 -->
+  <div class="viz" style="margin-top:.8rem">
+    <div class="viz-title">循环结构 — 一个 Epoch 的完整逻辑</div>
+    <svg viewBox="0 0 680 68" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ar7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="14" y="18" width="120" height="36" rx="5" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="74" y="34" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10" fill="#0a5c45" font-weight="500">for batch in</text>
+      <text x="74" y="47" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#0a5c45">DataLoader</text>
+      <line x1="134" y1="36" x2="152" y2="36" stroke="#999" stroke-width="1" marker-end="url(#ar7)"/>
+      <rect x="154" y="18" width="310" height="36" rx="5" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+      <text x="309" y="34" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10" fill="#1a3a6b" font-weight="500">六步训练（上面六步）</text>
+      <text x="309" y="47" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#6080a0">重复 9次（2430÷270=9 batches/epoch）</text>
+      <line x1="464" y1="36" x2="482" y2="36" stroke="#999" stroke-width="1" marker-end="url(#ar7)"/>
+      <rect x="484" y="18" width="168" height="36" rx="5" fill="#fef5dd" stroke="#e0b84a" stroke-width="0.5"/>
+      <text x="568" y="34" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10" fill="#8a6200" font-weight="500">验证集评估</text>
+      <text x="568" y="47" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8.5" fill="#8a6200">保存最优 / 早停判断</text>
+    </svg>
+  </div>
+
+  <h3 id="s4b" id="c-backprop">反向传播与梯度下降</h3>
+  <p>反向传播用<strong>链式法则</strong>计算每个参数对 loss 的偏导数（梯度）。梯度的意义：它指出了让 loss 升高的方向，我们沿<strong>反方向</strong>走，loss 就下降：</p>
+
+  <h3 id="s4c">梯度下降直觉</h3>
+
+  <!-- 梯度下降直觉图 -->
+  <div class="viz">
+    <div class="viz-title">梯度下降 — 在损失曲面上滚向最低点</div>
+    <svg viewBox="0 0 680 168" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ar8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+      <!-- 损失曲线 -->
+      <path d="M40 30 Q120 148 280 62 Q370 18 450 94 Q510 148 660 140" fill="none" stroke="#ccc5b5" stroke-width="1.5"/>
+      <path d="M40 30 Q120 148 280 62 Q370 18 450 94 Q510 148 660 140 L660 160 L40 160 Z" fill="rgba(26,58,107,.04)"/>
+
+      <!-- 坐标轴 -->
+      <line x1="30" y1="18" x2="30" y2="154" stroke="#ccc5b5" stroke-width="0.7"/>
+      <line x1="30" y1="154" x2="670" y2="154" stroke="#ccc5b5" stroke-width="0.7"/>
+      <text x="18" y="22" font-family="'Noto Sans SC'" font-size="9.5" fill="#7a7060">Loss</text>
+      <text x="672" y="157" font-family="'Noto Sans SC'" font-size="9.5" fill="#7a7060">W</text>
+
+      <!-- 全局最小值 -->
+      <circle cx="372" cy="18" r="6" fill="#0a5c45"/>
+      <text x="384" y="14" font-family="'Noto Sans SC'" font-size="9.5" fill="#0a5c45">全局最优</text>
+
+      <!-- 初始点 -->
+      <circle cx="88" cy="98" r="6" fill="#c0392b"/>
+      <text x="98" y="94" font-family="'Noto Sans SC'" font-size="9.5" fill="#c0392b">初始权重</text>
+
+      <!-- 下降步骤 -->
+      <line x1="88"  y1="98" x2="130" y2="128" stroke="#e08060" stroke-width="1.5" marker-end="url(#ar8)"/>
+      <line x1="132" y1="128" x2="180" y2="148" stroke="#e08060" stroke-width="1.5" marker-end="url(#ar8)"/>
+      <line x1="182" y1="148" x2="236" y2="130" stroke="#e08060" stroke-width="1.5" marker-end="url(#ar8)"/>
+      <line x1="238" y1="130" x2="292" y2="98"  stroke="#e08060" stroke-width="1.5" marker-end="url(#ar8)"/>
+      <line x1="294" y1="98"  x2="338" y2="56"  stroke="#e08060" stroke-width="1.5" marker-end="url(#ar8)"/>
+      <line x1="340" y1="56"  x2="364" y2="26"  stroke="#e08060" stroke-width="1.5" marker-end="url(#ar8)"/>
+
+      <!-- 学习率示意 -->
+      <line x1="130" y1="128" x2="130" y2="98" stroke="#8a6200" stroke-width="0.7" stroke-dasharray="2 2"/>
+      <line x1="130" y1="128" x2="180" y2="128" stroke="#8a6200" stroke-width="0.7" stroke-dasharray="2 2"/>
+      <text x="156" y="122" text-anchor="middle" font-family="'JetBrains Mono'" font-size="7.5" fill="#8a6200">lr</text>
+
+      <!-- 说明卡 -->
+      <rect x="488" y="28" width="174" height="104" rx="5" fill="rgba(245,240,232,.95)" stroke="#ccc5b5" stroke-width="0.5"/>
+      <text x="575" y="48" text-anchor="middle" font-family="'Noto Sans SC'" font-size="9.5" fill="#1a3a6b" font-weight="500">SGD + Momentum</text>
+      <text x="500" y="65" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">v = 0.9×v + ∇W</text>
+      <text x="500" y="80" font-family="'JetBrains Mono'" font-size="8.5" fill="#7a7060">W = W − 0.001×v</text>
+      <text x="500" y="98" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">lr太大 → 在谷底震荡</text>
+      <text x="500" y="112" font-family="'Noto Sans SC'" font-size="8.5" fill="#7a7060">lr太小 → 收敛极慢</text>
+      <text x="500" y="124" font-family="'Noto Sans SC'" font-size="8.5" fill="#0a5c45">momentum → 稳定方向</text>
+    </svg>
+  </div>
+
+  <h3 id="s4d">早停机制（Early Stopping）</h3>
+  <p>训练集 loss 可以无限下降，但验证集 loss 会在某个点回升——那是<strong>过拟合</strong>的开始，模型开始"死记"训练数据。早停在验证集 200 轮未提升时叫停：</p>
+
+  <div class="viz">
+    <div class="viz-title">早停逻辑 — 在验证集最优处保存权重，防止过拟合</div>
+    <svg viewBox="0 0 680 162" xmlns="http://www.w3.org/2000/svg">
+      <!-- 坐标轴 -->
+      <line x1="40" y1="18" x2="40" y2="136" stroke="#ccc5b5" stroke-width="0.7"/>
+      <line x1="40" y1="136" x2="660" y2="136" stroke="#ccc5b5" stroke-width="0.7"/>
+      <text x="26" y="22" font-family="'Noto Sans SC'" font-size="9.5" fill="#7a7060">Loss</text>
+      <text x="662" y="139" font-family="'Noto Sans SC'" font-size="9.5" fill="#7a7060">Epoch</text>
+
+      <!-- 训练loss曲线（持续下降） -->
+      <path d="M40 32 Q130 52 230 70 Q340 84 460 96 Q560 104 660 108" fill="none" stroke="#1a3a6b" stroke-width="1.5"/>
+      <!-- 验证loss曲线（先降后升） -->
+      <path d="M40 50 Q110 46 190 54 Q270 66 340 82 Q400 96 438 92 Q490 96 540 108 Q600 120 660 132" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+
+      <!-- 最优点 -->
+      <line x1="438" y1="16" x2="438" y2="136" stroke="#0a5c45" stroke-width="1" stroke-dasharray="4 3"/>
+      <circle cx="438" cy="92" r="5" fill="#0a5c45"/>
+      <text x="442" y="14" font-family="'Noto Sans SC'" font-size="9.5" fill="#0a5c45" font-weight="500">验证最优 → 保存 model.pth</text>
+
+      <!-- 早停触发 -->
+      <line x1="608" y1="16" x2="608" y2="136" stroke="#c0392b" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="612" y="14" font-family="'Noto Sans SC'" font-size="9.5" fill="#c0392b">早停触发</text>
+      <text x="612" y="27" font-family="'JetBrains Mono'" font-size="8" fill="#c0392b">200轮未提升</text>
+
+      <!-- 过拟合区域 -->
+      <rect x="438" y="18" width="222" height="118" fill="rgba(192,57,43,.04)"/>
+      <text x="540" y="48" text-anchor="middle" font-family="'Noto Sans SC'" font-size="9" fill="#c0392b">过拟合区域</text>
+
+      <!-- 图例 -->
+      <line x1="44" y1="150" x2="70" y2="150" stroke="#1a3a6b" stroke-width="1.5"/>
+      <text x="74" y="154" font-family="'Noto Sans SC'" font-size="9.5" fill="#1a3a6b">训练集（持续下降）</text>
+      <line x1="224" y1="150" x2="250" y2="150" stroke="#c0392b" stroke-width="1.5"/>
+      <text x="254" y="154" font-family="'Noto Sans SC'" font-size="9.5" fill="#c0392b">验证集（过拟合后回升）</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════════════════ 05 超参数 ════════════════════ -->
+<section class="sec" id="s5">
+  <div class="shead"><span class="snum">05</span><h2>超参数配置</h2></div>
+
+  <p>所有可调参数集中在 <code class="i">config</code> 字典——改这里就能切换实验，无需改动训练代码：</p>
+
+  <div class="cb">
+    <div class="cbh"><div class="cdd"><i></i><i></i><i></i></div><div class="cbl">Python</div></div>
+    <pre>config = {
+    <span class="st">'n_epochs'</span>: <span class="nm">3000</span>,       <span class="cm"># 最多训练 3000 轮（早停可提前结束）</span>
+    <span class="st">'batch_size'</span>: <span class="nm">270</span>,     <span class="cm"># 每批 270 条（= 验证集大小）</span>
+    <span class="st">'optimizer'</span>: <span class="st">'SGD'</span>,    <span class="cm"># 动态加载：getattr(torch.optim, 'SGD')</span>
+    <span class="st">'optim_hparas'</span>: {
+        <span class="st">'lr'</span>: <span class="nm">0.001</span>,           <span class="cm"># 学习率：每次参数更新的步长</span>
+        <span class="st">'momentum'</span>: <span class="nm">0.9</span>,       <span class="cm"># 动量：积累历史梯度方向</span>
+    },
+    <span class="st">'early_stop'</span>: <span class="nm">200</span>,     <span class="cm"># 验证集连续 200 轮无提升则停</span>
+    <span class="st">'save_path'</span>: <span class="st">'models/model.pth'</span>,
+}</pre>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>参数</th><th>默认值</th><th>直觉解释</th></tr></thead>
+    <tbody>
+      <tr><td><code class="i">batch_size</code></td><td>270</td><td>批越大梯度越稳、内存越大；批越小更新越频繁但噪声更多</td></tr>
+      <tr><td><code class="i">lr</code></td><td>0.001</td><td>太大在最优点附近震荡，太小收敛极慢——通常 0.001 是安全起点</td></tr>
+      <tr><td><code class="i">momentum</code></td><td>0.9</td><td>记住90%历史梯度方向，像"滚球"越过小坑，加速收敛</td></tr>
+      <tr><td><code class="i">early_stop</code></td><td>200</td><td>耐心值越大越可能找到更优解，但也越耗时</td></tr>
+    </tbody>
+  </table>
+
+  <div class="concept" id="c-momentum">
+    <div class="concept-tag">概念解释</div>
+    <h4>Momentum（动量）是什么？</h4>
+    <p>普通 SGD 每步都只看当前梯度，方向容易震荡。Momentum 像一个有惯性的球——记住上一步的运动方向，不会因为单次梯度变化就急转弯。公式 <code class="i">v = 0.9×v + ∇W</code>，<code class="i">W = W - lr×v</code>：速度 v 不断积累，平坦方向加速，震荡方向互相抵消。</p>
+  </div>
+</section>
+
+<!-- ════════════════════ 06 推理 ════════════════════ -->
+<section class="sec" id="s6">
+  <div class="shead"><span class="snum">06</span><h2>推理与提交文件</h2></div>
+
+  <p>训练结束后，加载<strong>验证集 loss 最低时保存的权重</strong>（不是最后一个 epoch），在测试集上推理：</p>
+
+  <div class="viz">
+    <div class="viz-title">推理流程 — 加载最优权重 → 无梯度推理 → 写出 pred.csv</div>
+    <svg viewBox="0 0 680 96" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ar9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+
+      <rect x="14" y="22" width="140" height="52" rx="5" fill="#eeece8" stroke="#ccc5b5" stroke-width="0.5"/>
+      <text x="84" y="44" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10.5" fill="#5a5040" font-weight="500">model.pth</text>
+      <text x="84" y="59" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#7a7060">最优epoch权重</text>
+      <text x="84" y="82" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">torch.load()</text>
+      <line x1="154" y1="48" x2="178" y2="48" stroke="#aaa" stroke-width="1" marker-end="url(#ar9)"/>
+
+      <rect x="180" y="12" width="170" height="72" rx="5" fill="#1a3a6b" stroke="#1a3a6b" stroke-width="0.5"/>
+      <text x="265" y="38" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10.5" fill="white" font-weight="500">NeuralNet</text>
+      <text x="265" y="54" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="rgba(255,255,255,.75)">load_state_dict(ckpt)</text>
+      <text x="265" y="68" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="rgba(255,255,255,.75)">model.eval()  ← 必须！</text>
+      <line x1="350" y1="48" x2="374" y2="48" stroke="#aaa" stroke-width="1" marker-end="url(#ar9)"/>
+
+      <rect x="376" y="22" width="154" height="52" rx="5" fill="#e8eef8" stroke="#8aacda" stroke-width="0.5"/>
+      <text x="453" y="44" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10.5" fill="#1a3a6b" font-weight="500">测试集 893条</text>
+      <text x="453" y="59" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#1a3a6b">torch.no_grad()</text>
+      <text x="453" y="82" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">无标签，仅前向推理</text>
+      <line x1="530" y1="48" x2="554" y2="48" stroke="#aaa" stroke-width="1" marker-end="url(#ar9)"/>
+
+      <rect x="556" y="22" width="112" height="52" rx="5" fill="#e0f4ed" stroke="#5bba9a" stroke-width="0.5"/>
+      <text x="612" y="44" text-anchor="middle" font-family="'Noto Sans SC'" font-size="10.5" fill="#0a5c45" font-weight="500">pred.csv</text>
+      <text x="612" y="59" text-anchor="middle" font-family="'JetBrains Mono'" font-size="8" fill="#0a5c45">id, tested_positive</text>
+      <text x="612" y="82" text-anchor="middle" font-family="'Noto Sans SC'" font-size="8" fill="#7a7060">893行提交结果</text>
+    </svg>
+  </div>
+
+  <div class="call r">
+    <div class="ctitle">⚠ 必须调用 model.eval()</div>
+    若忘记，Dropout 会随机丢弃神经元，BatchNorm 会用当前 batch 而非训练期统计。两者都使推理结果不稳定、偏差偏高。<code class="i">torch.no_grad()</code> 则节省显存（不构建计算图）。
+  </div>
+</section>
+
+<!-- ════════════════════ 07 优化建议 ════════════════════ -->
+<section class="sec" id="s7">
+  <div class="shead"><span class="snum">07</span><h2>性能提升建议</h2></div>
+  <p>按影响由大到小，建议依次尝试：</p>
+
+  <ul class="implist">
+    <li>
+      <span class="itag f">特征</span>
+      <div><strong>特征选择</strong>：完成 <code class="i">target_only=True</code> 分支，只保留 40 个州指标 + 2 个 <code class="i">tested_positive</code> 特征（索引 57 和 75）。减少噪声输入，模型更专注于强预测特征。</div>
+    </li>
+    <li>
+      <span class="itag t">训练</span>
+      <div><strong>切换 Adam 优化器</strong>：将 <code class="i">config['optimizer']</code> 改为 <code class="i">'Adam'</code>，删去 <code class="i">momentum</code>。Adam 为每个参数自适应调整学习率，通常比 SGD 收敛快 2–5 倍。</div>
+    </li>
+    <li>
+      <span class="itag m">模型</span>
+      <div><strong>加深网络</strong>：改为三层或更多（如 93→256→128→1），加入 <code class="i">BatchNorm1d</code>（稳定每层输入分布）和 <code class="i">Dropout(p=0.2)</code>（训练时随机丢弃，防过拟合）。</div>
+    </li>
+    <li>
+      <span class="itag r">正则</span>
+      <div><strong>L2 正则化</strong>：在优化器加 <code class="i">weight_decay=1e-5</code>，惩罚过大权重，减少过拟合，提升泛化。</div>
+    </li>
+    <li>
+      <span class="itag f">数据</span>
+      <div><strong>正确的标准化</strong>：用<strong>训练集</strong>的 mean/std 统一标准化验证集和测试集，避免测试集信息泄露到预处理流程。</div>
+    </li>
+  </ul>
+
+  <!-- SGD vs Adam 对比图 -->
+  <div class="viz">
+    <div class="viz-title">SGD vs Adam 收敛对比</div>
+    <svg viewBox="0 0 680 138" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="16" x2="40" y2="118" stroke="#ccc5b5" stroke-width="0.7"/>
+      <line x1="40" y1="118" x2="640" y2="118" stroke="#ccc5b5" stroke-width="0.7"/>
+      <text x="26" y="20" font-family="'Noto Sans SC'" font-size="9.5" fill="#7a7060">Loss</text>
+      <text x="642" y="121" font-family="'Noto Sans SC'" font-size="9.5" fill="#7a7060">Epoch</text>
+
+      <!-- SGD: 震荡缓慢 -->
+      <path d="M40 28 Q72 44 108 50 Q144 55 180 62 Q216 58 252 66 Q288 64 324 70 Q360 68 396 73 Q432 71 468 76 Q504 74 540 78 Q576 76 612 80" fill="none" stroke="#1a3a6b" stroke-width="1.5"/>
+
+      <!-- Adam: 快速下降 -->
+      <path d="M40 28 Q76 60 124 78 Q172 90 236 94 Q300 97 368 99 Q436 100 524 101 Q580 101 640 102" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+
+      <!-- 图例 -->
+      <line x1="48" y1="130" x2="74" y2="130" stroke="#1a3a6b" stroke-width="1.5"/>
+      <text x="78" y="134" font-family="'Noto Sans SC'" font-size="9.5" fill="#1a3a6b">SGD（当前）：慢，需仔细调lr</text>
+      <line x1="308" y1="130" x2="334" y2="130" stroke="#c0392b" stroke-width="1.5"/>
+      <text x="338" y="134" font-family="'Noto Sans SC'" font-size="9.5" fill="#c0392b">Adam（推荐）：自适应lr，快速收敛</text>
+    </svg>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <div>ML2021Spring HW1 · 技术方案图解文档 · PyTorch 回归任务</div>
+  <div>MSELoss · SGD(lr=0.001, momentum=0.9) · EarlyStop=200 · 93→64→1 MLP</div>
+</footer>
+
+<script>
+(function(){
+  const tabs = document.querySelectorAll('.step-tab');
+  const panels = document.querySelectorAll('.step-panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const idx = tab.dataset.idx;
+      tabs.forEach(t => t.classList.remove('on'));
+      panels.forEach(p => p.classList.remove('on'));
+      tab.classList.add('on');
+      document.querySelector(`.step-panel[data-idx="${idx}"]`).classList.add('on');
+    });
+  });
+})();
+</script>
+</body>
+</html>

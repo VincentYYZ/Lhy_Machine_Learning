@@ -1,8 +1,56 @@
 # ML2021Spring_HW1 逐行讲解版
 
-面向零基础同学，对 `ML2021Spring_HW1.ipynb` 中的每行代码做中文解释，并穿插相关的机器学习概念。代码块后紧跟对应解释，顺序与 notebook 一致。
+> 本文面向机器学习初学者，整理 `ML2021Spring_HW1.ipynb` 的完整训练流程。  
+> 核心主线：**下载数据 → 导入库 → 构造 Dataset/DataLoader → 定义模型 → 训练/验证/测试 → 保存预测结果**。
 
-## 下载数据
+## 目录
+
+- [1. 任务整体理解](#1-任务整体理解)
+- [2. 下载数据](#2-下载数据)
+- [3. 导入包与随机种子](#3-导入包与随机种子)
+- [4. 工具函数](#4-工具函数)
+- [5. 数据预处理与 Dataset](#5-数据预处理与-dataset)
+- [6. DataLoader](#6-dataloader)
+- [7. 定义神经网络](#7-定义神经网络)
+- [8. 训练、验证与测试函数](#8-训练验证与测试函数)
+- [9. 超参数配置](#9-超参数配置)
+- [10. 加载数据与模型](#10-加载数据与模型)
+- [11. 开始训练与结果可视化](#11-开始训练与结果可视化)
+- [12. 测试并保存提交文件](#12-测试并保存提交文件)
+- [13. 提升思路](#13-提升思路)
+
+---
+
+## 1. 任务整体理解
+
+### 1.1 这个作业在做什么
+
+这是一个 **回归任务（Regression）**：
+
+- **输入（Input）**：COVID-19 相关统计特征。
+- **输出（Output）**：预测未来的 `tested_positive` 数值。
+- **模型（Model）**：一个简单的全连接神经网络（Fully Connected Neural Network）。
+- **损失函数（Loss）**：均方误差 `MSELoss`。
+
+### 1.2 深度学习训练的通用流程
+
+| 步骤 | 本作业对应代码 | 作用 |
+|---|---|---|
+| 1 | `COVID19Dataset` | 读取、切分、标准化数据 |
+| 2 | `DataLoader` | 按 batch 批量加载数据 |
+| 3 | `NeuralNet` | 定义神经网络结构 |
+| 4 | `MSELoss` | 衡量预测值和真实值的差距 |
+| 5 | `optimizer` | 根据梯度更新模型参数 |
+| 6 | `train()` | 执行完整训练循环 |
+| 7 | `dev()` | 在验证集上评估效果 |
+| 8 | `test()` | 在测试集上生成预测 |
+| 9 | `save_pred()` | 保存提交文件 |
+
+> **关键理解**：大多数 PyTorch 模型训练都遵循这个骨架，只是数据类型、模型结构、损失函数和优化器可能不同。
+
+---
+
+## 2. 下载数据
 
 ```python
 tr_path = 'covid.train.csv'  # path to training data
@@ -11,12 +59,21 @@ tt_path = 'covid.test.csv'   # path to testing data
 !gdown --id '19CCyCgJrUxtvgZF53vnctJiOJ23T5mqF' --output covid.train.csv
 !gdown --id '1CE240jLm2npU-tdz81-oVKEF3T2yfT1O' --output covid.test.csv
 ```
-- `tr_path = 'covid.train.csv'`：设定训练集文件名；训练集包含特征和真实标签。
-- `tt_path = 'covid.test.csv'`：设定测试集文件名；测试集只有特征没有标签，用于提交预测。
-- `!gdown ... --output covid.train.csv`：在 Colab/命令行使用 `gdown` 根据 Google Drive ID 下载训练集到当前目录。
-- `!gdown ... --output covid.test.csv`：下载测试集。
 
-## 导入包并设置随机种子
+### 代码解释
+
+| 代码 | 解释 |
+|---|---|
+| `tr_path = 'covid.train.csv'` | 设置训练集文件路径，训练集包含特征和真实标签。 |
+| `tt_path = 'covid.test.csv'` | 设置测试集文件路径，测试集只有特征，没有真实标签。 |
+| `!gdown ... --output covid.train.csv` | 用 `gdown` 从 Google Drive 下载训练集。 |
+| `!gdown ... --output covid.test.csv` | 用 `gdown` 从 Google Drive 下载测试集。 |
+
+> **注意**：`!` 是 Jupyter Notebook 的语法，表示执行 shell 命令，不是普通 Python 语法。
+
+---
+
+## 3. 导入包与随机种子
 
 ```python
 # PyTorch
@@ -41,29 +98,51 @@ torch.manual_seed(myseed)
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(myseed)
 ```
-- `import torch`：导入 PyTorch 主库，用于张量计算与训练。
-- `import torch.nn as nn`：导入神经网络层与损失函数模块。
-- `from torch.utils.data import Dataset, DataLoader`：数据集与批量加载工具。
-- `import numpy as np`：NumPy，用于数组处理和数值计算。
-- `import csv`：读取 CSV 文件的标准库。
-- `import os`：文件和路径操作。
-- `import matplotlib.pyplot as plt` / `from matplotlib.pyplot import figure`：绘图函数，绘制学习曲线与预测散点图。
-- `myseed = 42069`：固定随机种子，保证实验可复现。
-- `torch.backends.cudnn.deterministic = True`：让 CuDNN 的算法确定性，减少随机性。
-- `torch.backends.cudnn.benchmark = False`：关闭算法自动搜索，配合上行确保结果一致。
-- `np.random.seed(myseed)`：固定 NumPy 随机性。
-- `torch.manual_seed(myseed)`：固定 CPU 端 PyTorch 随机性。
-- `if torch.cuda.is_available(): torch.cuda.manual_seed_all(myseed)`：若有 GPU，则固定 GPU 端随机性。
 
-## 常用工具函数
+### 3.1 导入包
+
+| 代码 | 作用 |
+|---|---|
+| `import torch` | 导入 PyTorch 主库，用于张量计算和深度学习训练。 |
+| `import torch.nn as nn` | 导入神经网络模块，例如 `Linear`、`ReLU`、`MSELoss`。 |
+| `Dataset, DataLoader` | 自定义数据集和批量加载数据的工具。 |
+| `numpy` | 处理数组和数值计算。 |
+| `csv` | 读取和写入 CSV 文件。 |
+| `os` | 文件夹、路径等系统操作。 |
+| `matplotlib.pyplot` | 绘制学习曲线和预测散点图。 |
+
+### 3.2 随机种子与可复现性
+
+| 代码 | 作用 |
+|---|---|
+| `myseed = 42069` | 设置随机种子。数字本身不重要，重要的是固定不变。 |
+| `np.random.seed(myseed)` | 固定 NumPy 的随机行为。 |
+| `torch.manual_seed(myseed)` | 固定 PyTorch CPU 上的随机行为。 |
+| `torch.cuda.manual_seed_all(myseed)` | 固定 PyTorch GPU 上的随机行为。 |
+| `torch.backends.cudnn.deterministic = True` | 让 CuDNN 使用确定性算法。 |
+| `torch.backends.cudnn.benchmark = False` | 关闭 CuDNN 自动寻找最快算法，减少不确定性。 |
+
+> **初学者理解**：固定随机种子就像做实验时保持条件一致。这样你修改模型后，结果变化更可能来自你的修改，而不是随机运气。
+
+---
+
+## 4. 工具函数
+
+### 4.1 获取计算设备
 
 ```python
 def get_device():
     ''' Get device (if GPU is available, use GPU) '''
     return 'cuda' if torch.cuda.is_available() else 'cpu'
 ```
-- `def get_device():`：定义函数检测设备。
-- `return 'cuda' if torch.cuda.is_available() else 'cpu'`：若有 GPU 返回 `'cuda'`，否则返回 `'cpu'`。
+
+| 代码 | 解释 |
+|---|---|
+| `torch.cuda.is_available()` | 检查是否有可用 GPU。 |
+| `'cuda'` | 表示使用 NVIDIA GPU。 |
+| `'cpu'` | 表示使用 CPU。 |
+
+### 4.2 绘制学习曲线
 
 ```python
 def plot_learning_curve(loss_record, title=''):
@@ -81,17 +160,19 @@ def plot_learning_curve(loss_record, title=''):
     plt.legend()
     plt.show()
 ```
-- `total_steps = len(loss_record['train'])`：训练记录的步数。
-- `x_1 = range(total_steps)`：训练曲线的横轴。
-- `x_2 = x_1[::len(loss_record['train']) // len(loss_record['dev'])]`：把验证集记录均匀映射到横轴。
-- `figure(figsize=(6, 4))`：设定图尺寸。
-- `plt.plot(... train ...)`：红色曲线画训练损失。
-- `plt.plot(... dev ...)`：青色曲线画验证损失。
-- `plt.ylim(0.0, 5.)`：Y 轴范围 0~5，方便观察。
-- `plt.xlabel('Training steps')` / `plt.ylabel('MSE loss')`：坐标轴标签。
-- `plt.title(...)`：图标题。
-- `plt.legend()`：显示图例。
-- `plt.show()`：展示图形。
+
+### 主要逻辑
+
+| 代码 | 解释 |
+|---|---|
+| `loss_record['train']` | 训练过程中每个 batch 的损失。 |
+| `loss_record['dev']` | 每个 epoch 后验证集的损失。 |
+| `plt.plot(...)` | 画训练损失和验证损失曲线。 |
+| `plt.legend()` | 显示图例。 |
+
+> **用途**：观察模型是正常学习、过拟合还是欠拟合。
+
+### 4.3 绘制预测值 vs 真实值
 
 ```python
 def plot_pred(dv_set, model, device, lim=35., preds=None, targets=None):
@@ -118,25 +199,23 @@ def plot_pred(dv_set, model, device, lim=35., preds=None, targets=None):
     plt.title('Ground Truth v.s. Prediction')
     plt.show()
 ```
-- `def plot_pred(...)`：绘制预测值与真实值散点，检查模型拟合。
-- `if preds is None or targets is None:`：若未传入预计算结果，则现场计算。
-- `model.eval()`：切换评估模式，禁用 dropout/BN 等训练行为。
-- `preds, targets = [], []`：准备收集预测与标签。
-- `for x, y in dv_set:`：遍历验证集批次。
-- `x, y = x.to(device), y.to(device)`：把数据移到 CPU/GPU。
-- `with torch.no_grad(): pred = model(x)`：关闭梯度，仅做前向推理。
-- `preds.append(pred.detach().cpu())`：取出预测张量、搬到 CPU 并累加。
-- `targets.append(y.detach().cpu())`：同理收集真实标签。
-- `preds = torch.cat(...).numpy()` / `targets = ...`：拼接所有批次并转为 NumPy，便于绘图。
-- `figure(figsize=(5, 5))`：图尺寸。
-- `plt.scatter(targets, preds, c='r', alpha=0.5)`：散点图，红色、半透明。
-- `plt.plot([-0.2, lim], [-0.2, lim], c='b')`：画对角线，理想预测应落在此线附近。
-- `plt.xlim/ylim(-0.2, lim)`：设置坐标范围。
-- `plt.xlabel/plt.ylabel(...)`：轴标签。
-- `plt.title('Ground Truth v.s. Prediction')`：标题。
-- `plt.show()`：显示图。
 
-## 数据预处理与 Dataset
+### 主要逻辑
+
+| 代码 | 解释 |
+|---|---|
+| `model.eval()` | 切换到评估模式。 |
+| `with torch.no_grad()` | 不计算梯度，节省显存和计算。 |
+| `preds.append(...)` | 收集模型预测值。 |
+| `targets.append(...)` | 收集真实标签。 |
+| `plt.scatter(targets, preds)` | 画真实值和预测值的散点图。 |
+| `plt.plot([-0.2, lim], [-0.2, lim])` | 画理想对角线，点越靠近线越好。 |
+
+---
+
+## 5. 数据预处理与 Dataset
+
+### 5.1 Dataset 完整代码
 
 ```python
 class COVID19Dataset(Dataset):
@@ -202,31 +281,49 @@ class COVID19Dataset(Dataset):
         # Returns the size of the dataset
         return len(self.data)
 ```
-- `class COVID19Dataset(Dataset):`：继承 `torch.utils.data.Dataset`，定义自定数据集。
-- `__init__(path, mode='train', target_only=False)`：初始化参数，`mode` 控制训练/验证/测试，`target_only` 是否只选部分特征。
-- `self.mode = mode`：保存模式。
-- `with open(path, 'r') as fp:`：打开 CSV。
-- `data = list(csv.reader(fp))`：逐行读取为列表。
-- `data = np.array(data[1:])[:, 1:].astype(float)`：跳过表头行、跳过第一列 ID，仅保留数值特征并转为浮点。
-- `if not target_only: feats = list(range(93))`：默认使用 93 个输入特征。
-- `else: ... pass`：TODO：若开启只用目标相关特征，这里需指定 40 个州 + 2 个 `tested_positive` 特征（索引 57 和 75）。
-- `if mode == 'test':`：测试模式不含标签。
-- `data = data[:, feats]`：按挑选的特征列截取。
-- `self.data = torch.FloatTensor(data)`：测试集保存为浮点张量。
-- `else:`：训练/验证模式包含标签。
-- `target = data[:, -1]`：最后一列是标签（未来第 4 天确诊数）。
-- `data = data[:, feats]`：特征截取。
-- `if mode == 'train': indices = [i for i ... if i % 10 != 0]`：按 9:1 划分，取 90% 作为训练。
-- `elif mode == 'dev': indices = [i for i ... if i % 10 == 0]`：取每 10 个样本中的第 0 个作为验证。
-- `self.data = torch.FloatTensor(data[indices])`：选定样本转张量。
-- `self.target = torch.FloatTensor(target[indices])`：选定标签转张量。
-- `self.data[:, 40:] = (self.data[:, 40:] - mean) / std`：对第 40 列及之后的时间序列特征做标准化（减均值除标准差），让各特征尺度相近；提高收敛速度，防止梯度不稳定。
-- `self.dim = self.data.shape[1]`：记录特征维度。
-- `print('Finished reading ...')`：输出读入信息，便于确认维度和样本数。
-- `__getitem__`：按索引返回一条数据；训练/验证返回 `(特征, 标签)`，测试仅返回特征。
-- `__len__`：返回数据集大小，供 `DataLoader` 使用。
 
-## DataLoader
+### 5.2 Dataset 负责什么
+
+| 功能 | 对应代码 |
+|---|---|
+| 读取 CSV | `with open(path, 'r') as fp` |
+| 跳过表头和 ID 列 | `data[1:]`、`[:, 1:]` |
+| 转成浮点数 | `.astype(float)` |
+| 选择特征 | `feats = list(range(93))` |
+| 区分训练/验证/测试 | `mode == 'train' / 'dev' / 'test'` |
+| 训练集切分 | `i % 10 != 0` |
+| 验证集切分 | `i % 10 == 0` |
+| 转成 PyTorch Tensor | `torch.FloatTensor(...)` |
+| 标准化 | `(x - mean) / std` |
+
+### 5.3 关键变量解释
+
+| 变量 | 含义 |
+|---|---|
+| `mode` | 控制当前是训练、验证还是测试。 |
+| `target_only` | 是否只选择部分重要特征。 |
+| `feats` | 选中的特征列索引。 |
+| `target` | 真实标签，也就是模型要预测的值。 |
+| `self.data` | 输入特征，形状通常是 `(样本数, 特征数)`。 |
+| `self.target` | 训练/验证时的真实标签。 |
+| `self.dim` | 特征数量，例如 `93` 或 `42`。 |
+
+### 5.4 为什么要标准化
+
+```python
+self.data[:, 40:] = (self.data[:, 40:] - mean) / std
+```
+
+这叫 **Z-score 标准化**：
+
+- **减均值**：让数据中心接近 0。
+- **除标准差**：让不同特征的尺度接近。
+
+> **意义**：避免大数值特征主导训练，让梯度更稳定，模型更容易收敛。
+
+---
+
+## 6. DataLoader
 
 ```python
 def prep_dataloader(path, mode, batch_size, n_jobs=0, target_only=False):
@@ -238,12 +335,30 @@ def prep_dataloader(path, mode, batch_size, n_jobs=0, target_only=False):
         num_workers=n_jobs, pin_memory=True)                            # Construct dataloader
     return dataloader
 ```
-- `prep_dataloader(...)`：封装数据集创建和批量加载。
-- `dataset = COVID19Dataset(...)`：实例化自定义数据集。
-- `DataLoader(... shuffle=(mode=='train') ...)`：训练集打乱样本，验证/测试不打乱；`drop_last=False` 保留最后不足一批的数据；`num_workers` 控制并行加载；`pin_memory=True` 便于 GPU 加速。
-- `return dataloader`：返回可迭代的批数据对象。
 
-## 定义神经网络
+### 6.1 这个函数做什么
+
+它把两件事封装到一起：
+
+1. 创建 `COVID19Dataset`。
+2. 用 `DataLoader` 把数据包装成可迭代的 batch。
+
+### 6.2 DataLoader 参数解释
+
+| 参数 | 解释 |
+|---|---|
+| `dataset` | 数据来源，也就是 `COVID19Dataset` 实例。 |
+| `batch_size` | 每次训练取多少条样本。 |
+| `shuffle=(mode == 'train')` | 训练集打乱，验证/测试集不打乱。 |
+| `drop_last=False` | 最后一批不足 `batch_size` 时仍然保留。 |
+| `num_workers=n_jobs` | 用几个子进程加载数据。 |
+| `pin_memory=True` | 使用 GPU 时可加快 CPU 到 GPU 的数据传输。 |
+
+> **类比**：`Dataset` 像仓库，`DataLoader` 像自动打包机，每次打包一批数据给模型训练。
+
+---
+
+## 7. 定义神经网络
 
 ```python
 class NeuralNet(nn.Module):
@@ -271,14 +386,35 @@ class NeuralNet(nn.Module):
         # TODO: you may implement L2 regularization here
         return self.criterion(pred, target)
 ```
-- `class NeuralNet(nn.Module):`：定义继承自 `nn.Module` 的模型。
-- `__init__(input_dim)`：传入特征维度。
-- `self.net = nn.Sequential(...)`：顺序容器搭建两层全连接网络；第一层把输入映射到 64 维，`nn.ReLU()` 激活引入非线性；第二层输出 1 维回归值。
-- `self.criterion = nn.MSELoss(reduction='mean')`：均方误差作为回归损失。
-- `forward`：前向传播，把输入喂给 `self.net`，`squeeze(1)` 去掉多余的维度，得到 `(batch,)` 张量。
-- `cal_loss`：计算损失，目前直接用 MSE；注释提示可以加入 L2 正则（权重衰减）提升泛化。
 
-## 训练、验证与测试函数
+### 7.1 网络结构
+
+| 层 | 输入形状 | 输出形状 | 作用 |
+|---|---|---|---|
+| `nn.Linear(input_dim, 64)` | `(batch, input_dim)` | `(batch, 64)` | 全连接层，把输入映射到 64 维。 |
+| `nn.ReLU()` | `(batch, 64)` | `(batch, 64)` | 激活函数，引入非线性。 |
+| `nn.Linear(64, 1)` | `(batch, 64)` | `(batch, 1)` | 输出一个回归预测值。 |
+| `squeeze(1)` | `(batch, 1)` | `(batch,)` | 去掉多余维度，方便和标签计算损失。 |
+
+### 7.2 `forward` 不是完整训练
+
+`forward` 只是 **前向传播（Forward Pass）**：
+
+```text
+输入 x → 模型 self.net → 预测 pred
+```
+
+完整训练还需要：
+
+```text
+forward → loss → backward → optimizer.step()
+```
+
+---
+
+## 8. 训练、验证与测试函数
+
+### 8.1 训练函数 `train`
 
 ```python
 def train(tr_set, dv_set, model, config, device):
@@ -326,29 +462,46 @@ def train(tr_set, dv_set, model, config, device):
     print('Finished training after {} epochs'.format(epoch))
     return min_mse, loss_record
 ```
-- `n_epochs = config['n_epochs']`：最大训练轮数。
-- `optimizer = getattr(torch.optim, config['optimizer'])(...)`：根据配置创建优化器，这里是 `SGD`。
-- `min_mse = 1000.`：记录当前最好验证集损失，初值很大。
-- `loss_record = {'train': [], 'dev': []}`：存训练/验证损失曲线。
-- `early_stop_cnt = 0` / `epoch = 0`：早停计数与当前轮数。
-- `while epoch < n_epochs:`：主训练循环。
-- `model.train()`：启用训练模式。
-- `for x, y in tr_set:`：遍历训练批次。
-- `optimizer.zero_grad()`：清空上一批梯度。
-- `x, y = x.to(device), y.to(device)`：数据放到 GPU/CPU。
-- `pred = model(x)`：前向得到预测。
-- `mse_loss = model.cal_loss(pred, y)`：计算均方误差。
-- `mse_loss.backward()`：反向传播计算梯度。
-- `optimizer.step()`：按梯度更新参数。
-- `loss_record['train'].append(...)`：记录当前批次训练损失。
-- `dev_mse = dev(dv_set, model, device)`：每轮结束在验证集评估。
-- `if dev_mse < min_mse:`：若验证损失提升则保存模型。
-- `torch.save(model.state_dict(), config['save_path'])`：只保存权重参数。
-- `early_stop_cnt = 0` / `else: early_stop_cnt += 1`：验证未提升则累加早停计数。
-- `epoch += 1`：进入下一轮。
-- `loss_record['dev'].append(dev_mse)`：记录验证损失。
-- `if early_stop_cnt > config['early_stop']:`：连续若干轮未提升就提前停止，防止过拟合或浪费计算。
-- `return min_mse, loss_record`：返回最优验证损失与曲线记录。
+
+### 8.2 一次 batch 的训练流程
+
+| 顺序 | 代码 | 作用 |
+|---|---|---|
+| 1 | `optimizer.zero_grad()` | 清空上一轮梯度。 |
+| 2 | `x, y = x.to(device), y.to(device)` | 把数据移动到 CPU/GPU。 |
+| 3 | `pred = model(x)` | 前向传播，得到预测。 |
+| 4 | `mse_loss = model.cal_loss(pred, y)` | 计算预测和真实值的差距。 |
+| 5 | `mse_loss.backward()` | 反向传播，计算梯度。 |
+| 6 | `optimizer.step()` | 优化器根据梯度更新参数。 |
+| 7 | `loss_record['train'].append(...)` | 记录训练损失。 |
+
+### 8.3 优化器的创建
+
+```python
+optimizer = getattr(torch.optim, config['optimizer'])(
+    model.parameters(), **config['optim_hparas'])
+```
+
+如果配置里是：
+
+```python
+config['optimizer'] = 'SGD'
+config['optim_hparas'] = {'lr': 0.001, 'momentum': 0.9}
+```
+
+那么它等价于：
+
+```python
+optimizer = torch.optim.SGD(
+    model.parameters(),
+    lr=0.001,
+    momentum=0.9
+)
+```
+
+> **优化器作用**：根据梯度更新模型权重，让 loss 越来越小。
+
+### 8.4 验证函数 `dev`
 
 ```python
 def dev(dv_set, model, device):
@@ -364,15 +517,8 @@ def dev(dv_set, model, device):
 
     return total_loss
 ```
-- `model.eval()`：评估模式，关闭 dropout/BN 统计更新。
-- `total_loss = 0`：累计损失。
-- `for x, y in dv_set:`：遍历验证批次。
-- `x, y = x.to(device), y.to(device)`：移到设备。
-- `with torch.no_grad(): pred = model(x)`：无梯度前向。
-- `mse_loss = model.cal_loss(pred, y)`：批次 MSE。
-- `total_loss += mse_loss ... * len(x)`：按样本数加权累加总损失。
-- `total_loss = total_loss / len(dv_set.dataset)`：除以总样本数得到平均损失。
-- `return total_loss`：返回验证集平均 MSE。
+
+### 8.5 测试函数 `test`
 
 ```python
 def test(tt_set, model, device):
@@ -386,16 +532,18 @@ def test(tt_set, model, device):
     preds = torch.cat(preds, dim=0).numpy()     # concatenate all predictions and convert to a numpy array
     return preds
 ```
-- `model.eval()`：评估模式。
-- `preds = []`：收集预测。
-- `for x in tt_set:`：遍历测试集批次。
-- `x = x.to(device)`：移到设备。
-- `with torch.no_grad(): pred = model(x)`：无梯度前向。
-- `preds.append(pred.detach().cpu())`：取出预测放入列表。
-- `preds = torch.cat(preds, dim=0).numpy()`：拼接成完整预测并转 NumPy。
-- `return preds`：返回预测数组。
 
-## 超参数配置
+### 8.6 训练、验证、测试的区别
+
+| 阶段 | 是否更新参数 | 是否有标签 | 是否计算梯度 | 目的 |
+|---|---|---|---|---|
+| `train` | 是 | 是 | 是 | 学习模型参数 |
+| `dev` | 否 | 是 | 否 | 检查泛化能力 |
+| `test` | 否 | 否 | 否 | 生成最终预测 |
+
+---
+
+## 9. 超参数配置
 
 ```python
 device = get_device()                 # get the current available device ('cpu' or 'cuda')
@@ -415,48 +563,79 @@ config = {
     'save_path': 'models/model.pth'  # your model will be saved here
 }
 ```
-- `device = get_device()`：自动选择 CPU/GPU。
-- `os.makedirs('models', exist_ok=True)`：创建保存模型的目录，已存在则跳过。
-- `target_only = False`：是否只用部分特征；若设为 `True` 需补全 Dataset 中 TODO。
-- `config`：训练用超参数字典。
-  - `'n_epochs': 3000`：最大训练轮数上限。
-  - `'batch_size': 270`：批大小，影响梯度估计稳定性与显存占用。
-  - `'optimizer': 'SGD'`：使用随机梯度下降。
-  - `'optim_hparas': {'lr': 0.001, 'momentum': 0.9}`：学习率和动量；动量可加速收敛。
-  - `'early_stop': 200`：若验证集 200 轮未提升则早停。
-  - `'save_path': 'models/model.pth'`：最佳模型权重保存路径。
 
-## 加载数据与模型
+### 参数说明
+
+| 参数 | 解释 |
+|---|---|
+| `device` | 当前使用的计算设备，可能是 `cpu` 或 `cuda`。 |
+| `target_only` | 是否只使用关键特征。 |
+| `n_epochs` | 最大训练轮数。 |
+| `batch_size` | 每次训练使用多少条样本。 |
+| `optimizer` | 优化算法名称。 |
+| `lr` | 学习率，控制每次参数更新的步长。 |
+| `momentum` | 动量，让更新方向更稳定。 |
+| `early_stop` | 验证集长时间不提升时提前停止。 |
+| `save_path` | 保存最佳模型权重的位置。 |
+
+---
+
+## 10. 加载数据与模型
 
 ```python
 tr_set = prep_dataloader(tr_path, 'train', config['batch_size'], target_only=target_only)
 dv_set = prep_dataloader(tr_path, 'dev', config['batch_size'], target_only=target_only)
 tt_set = prep_dataloader(tt_path, 'test', config['batch_size'], target_only=target_only)
 ```
-- `prep_dataloader(... 'train' ...)`：构造训练集 DataLoader。
-- `prep_dataloader(... 'dev' ...)`：构造验证集 DataLoader。
-- `prep_dataloader(... 'test' ...)`：构造测试集 DataLoader。
-- 终端输出类似“Finished reading ... dim = 93”，确认样本数与维度。
+
+| 变量 | 含义 |
+|---|---|
+| `tr_set` | 训练集 DataLoader。 |
+| `dv_set` | 验证集 DataLoader。 |
+| `tt_set` | 测试集 DataLoader。 |
 
 ```python
 model = NeuralNet(tr_set.dataset.dim).to(device)  # Construct model and move to device
 ```
-- `NeuralNet(tr_set.dataset.dim)`：用数据集的特征维度实例化模型。
-- `.to(device)`：把模型参数移到 CPU 或 GPU。
 
-## 开始训练
+| 代码 | 解释 |
+|---|---|
+| `tr_set.dataset.dim` | 自动读取输入特征数量。 |
+| `NeuralNet(...)` | 根据特征数量创建模型。 |
+| `.to(device)` | 把模型移动到 CPU 或 GPU。 |
+
+> **自动适配**：如果特征数从 `93` 变成 `42`，`tr_set.dataset.dim` 会自动变，第一层 `Linear` 的输入维度也会跟着变。
+
+---
+
+## 11. 开始训练与结果可视化
+
+### 11.1 开始训练
 
 ```python
 model_loss, model_loss_record = train(tr_set, dv_set, model, config, device)
 ```
-- 调用训练函数，返回最优验证损失和损失曲线。
-- 训练过程中会在验证集提升时打印“Saving model (epoch = ..., loss = ...)”，并保存权重到 `config['save_path']`。
-- 日志显示损失逐步下降，说明模型在学习；早停触发时结束训练。
+
+返回值：
+
+| 变量 | 含义 |
+|---|---|
+| `model_loss` | 最佳验证集 MSE。 |
+| `model_loss_record` | 训练和验证损失记录，用于画图。 |
+
+### 11.2 绘制学习曲线
 
 ```python
 plot_learning_curve(model_loss_record, title='deep model')
 ```
-- 使用前面工具函数绘制训练/验证损失曲线，观察是否过拟合或欠拟合。
+
+学习曲线可以帮助判断：
+
+- **正常学习**：训练 loss 和验证 loss 都下降。
+- **过拟合**：训练 loss 下降，但验证 loss 上升。
+- **欠拟合**：训练 loss 和验证 loss 都很高。
+
+### 11.3 加载最佳模型并画预测图
 
 ```python
 del model
@@ -465,13 +644,17 @@ ckpt = torch.load(config['save_path'], map_location='cpu')  # Load your best mod
 model.load_state_dict(ckpt)
 plot_pred(dv_set, model, device)  # Show prediction on the validation set
 ```
-- `del model`：释放旧模型与显存。
-- 重新实例化同结构模型并移到设备。
-- `torch.load(... map_location='cpu')`：加载保存的最佳权重；映射到 CPU 方便通用。
-- `model.load_state_dict(ckpt)`：把权重装回模型。
-- `plot_pred(dv_set, model, device)`：绘制验证集预测 vs 真实散点，靠近对角线表示拟合良好。
 
-## 测试并保存提交文件
+| 代码 | 解释 |
+|---|---|
+| `del model` | 删除旧模型，释放资源。 |
+| `torch.load(...)` | 读取保存的最佳权重。 |
+| `model.load_state_dict(ckpt)` | 把权重加载回模型。 |
+| `plot_pred(...)` | 画预测值和真实值的散点图。 |
+
+---
+
+## 12. 测试并保存提交文件
 
 ```python
 def save_pred(preds, file):
@@ -486,16 +669,42 @@ def save_pred(preds, file):
 preds = test(tt_set, model, device)  # predict COVID-19 cases with your model
 save_pred(preds, 'pred.csv')         # save prediction file to pred.csv
 ```
-- `save_pred(preds, file)`：把预测结果写入 CSV，含两列：`id`（样本序号）和 `tested_positive`（预测值）。
-- `preds = test(tt_set, model, device)`：用训练好的模型在测试集上推理。
-- `save_pred(preds, 'pred.csv')`：保存为 `pred.csv`，用于比赛提交或评分。
 
-## 提示与提升思路
+### 代码解释
 
-- **特征选择**：完成 Dataset 中的 TODO，尝试仅用 40 州指标 + 2 个 `tested_positive` 特征，可能更稳。
-- **网络结构**：增加层数/宽度、加入 `Dropout` 或 `BatchNorm`，尝试不同激活函数提升表现。
-- **训练策略**：改用 `Adam` 优化器、更高/自适应学习率、调整批大小；尝试学习率衰减调度。
-- **正则化**：在 `cal_loss` 中加入 L2（权重衰减）减少过拟合。
-- **数据标准化**：可以尝试只标准化部分特征或改成 Min-Max 归一化，对模型收敛有影响。
+| 代码 | 解释 |
+|---|---|
+| `test(tt_set, model, device)` | 用训练好的模型对测试集预测。 |
+| `preds` | 所有测试样本的预测结果。 |
+| `save_pred(preds, 'pred.csv')` | 保存为提交文件。 |
+| `writer.writerow(['id', 'tested_positive'])` | 写入 CSV 表头。 |
+| `enumerate(preds)` | 同时得到样本编号和预测值。 |
 
-> 以上解释覆盖 notebook 中全部代码行，便于逐行理解深度学习回归任务的实现流程。祝学习顺利！
+---
+
+## 13. 提升思路
+
+### 13.1 作业提示
+
+| 方向 | 可尝试做法 |
+|---|---|
+| 特征选择 | 完成 `target_only=True` 的 TODO，只用 40 个州 + 2 个 `tested_positive`。 |
+| 模型结构 | 增加层数、宽度，尝试 `Dropout`、`BatchNorm`。 |
+| 优化器 | 从 `SGD` 改为 `Adam` 或 `AdamW`。 |
+| 学习率 | 调整 `lr`，或加入学习率调度器。 |
+| 正则化 | 使用 L2 regularization / weight decay。 |
+| 数据处理 | 尝试不同标准化方式，例如 Min-Max normalization。 |
+
+### 13.2 最重要的学习主线
+
+```text
+Dataset 负责“准备单条数据”
+DataLoader 负责“批量喂数据”
+Model 负责“从输入得到预测”
+Loss 负责“衡量预测错多少”
+Backward 负责“计算梯度”
+Optimizer 负责“更新参数”
+Dev/Test 负责“评估和预测”
+```
+
+> **总结**：这份 notebook 展示了一个完整 PyTorch 回归任务的训练骨架。理解这套流程后，迁移到分类、图像、NLP、推荐系统等任务时，只需要替换数据、模型和损失函数。
